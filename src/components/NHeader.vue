@@ -1,57 +1,94 @@
 <script setup>
-
+import {Search, UserRound, Heart, ShoppingBag, Menu,} from 'lucide-vue-next'
 </script>
 
 <template>
-    <header class="border-b border-gray-200">
-        <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-
+    <header class="absolute left-0 top-0 z-20 w-full">
+        <div
+            class="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-6 lg:px-10">
             <!-- Logo -->
-            <a
-                href="/"
-                class="text-2xl font-bold tracking-[0.2em]">
-                NOVA
-            </a>
+            <router-link
+                to="/"
+                class="text-2xl font-medium tracking-tight">
+                Nova
+            </router-link>
 
-            <!-- Navigation -->
-            <nav class="hidden items-center gap-8 md:flex">
-                <a
-                    href="/"
-                    class="text-sm transition hover:opacity-60">
-                    Home
-                </a>
+            <!-- Desktop navigation -->
+            <nav class="hidden items-center gap-10 lg:flex">
+                <router-link
+                    to="/shop?category=women"
+                    class="text-sm transition-opacity hover:opacity-50">
+                    Женщинам
+                </router-link>
 
-                <a
-                    href="/shop"
-                    class="text-sm transition hover:opacity-60">
-                    Shop
-                </a>
+                <router-link
+                    to="/shop?category=men"
+                    class="text-sm transition-opacity hover:opacity-50">
+                    Мужчинам
+                </router-link>
 
-                <a
-                    href="/collections"
-                    class="text-sm transition hover:opacity-60">
-                    Collections
-                </a>
+                <router-link
+                    to="/shop?collection=new"
+                    class="text-sm transition-opacity hover:opacity-50">
+                    Новинки
+                </router-link>
+
+                <router-link
+                    to="/collections"
+                    class="text-sm transition-opacity hover:opacity-50">
+                    Коллекции
+                </router-link>
+
+                <router-link
+                    to="/shop?sale=true"
+                    class="text-sm transition-opacity hover:opacity-50">
+                    Распродажа
+                </router-link>
             </nav>
 
             <!-- Actions -->
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-5">
                 <button
-                    class="text-sm transition hover:opacity-60">
-                    Search
+                    type="button"
+                    aria-label="Поиск"
+                    class="transition-opacity hover:opacity-50">
+                    <Search :size="20" :stroke-width="1.5"/>
                 </button>
 
-                <button
-                    class="text-sm transition hover:opacity-60">
-                    Cart
-                </button>
+                <router-link
+                    to="/account"
+                    aria-label="Аккаунт"
+                    class="hidden transition-opacity hover:opacity-50 sm:block">
+                    <UserRound :size="20" :stroke-width="1.5"/>
+                </router-link>
 
                 <button
-                    class="text-sm transition hover:opacity-60">
-                    Account
+                    type="button"
+                    aria-label="Избранное"
+                    class="hidden transition-opacity hover:opacity-50 sm:block">
+                    <Heart :size="20" :stroke-width="1.5"/>
+                </button>
+
+                <router-link
+                    to="/cart"
+                    aria-label="Корзина"
+                    class="relative transition-opacity hover:opacity-50">
+                    <ShoppingBag :size="20" :stroke-width="1.5"/>
+
+                    <span
+                        class="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-neutral-950 px-1 text-[9px] text-white">
+                        2
+                    </span>
+                </router-link>
+
+                <!-- Mobile menu -->
+                <button
+                    type="button"
+                    aria-label="Открыть меню"
+                    class="lg:hidden">
+                    <Menu :size="21" :stroke-width="1.5"/>
                 </button>
             </div>
-
         </div>
     </header>
 </template>
