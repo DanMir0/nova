@@ -16,19 +16,19 @@ import {Search, UserRound, Heart, ShoppingBag, Menu,} from 'lucide-vue-next'
             <!-- Desktop navigation -->
             <nav class="hidden items-center gap-10 lg:flex">
                 <router-link
-                    to="/shop?category=women"
+                    :to="{path: '/shop', query: {gender: 'women'}}"
                     class="text-sm transition-opacity hover:opacity-50">
                     Женщинам
                 </router-link>
 
                 <router-link
-                    to="/shop?category=men"
+                    :to="{path: '/shop', query: {gender: 'men'}}"
                     class="text-sm transition-opacity hover:opacity-50">
                     Мужчинам
                 </router-link>
 
                 <router-link
-                    to="/shop?collection=new"
+                    :to="{path: '/shop', query: {new: 'true'}}"
                     class="text-sm transition-opacity hover:opacity-50">
                     Новинки
                 </router-link>
@@ -40,7 +40,7 @@ import {Search, UserRound, Heart, ShoppingBag, Menu,} from 'lucide-vue-next'
                 </router-link>
 
                 <router-link
-                    to="/shop?sale=true"
+                    :to="{path: '/shop', query: {sale: 'true'}}"
                     class="text-sm transition-opacity hover:opacity-50">
                     Распродажа
                 </router-link>

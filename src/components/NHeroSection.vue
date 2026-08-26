@@ -1,9 +1,9 @@
 <script setup>
 import {ArrowLeft, ArrowRight,} from 'lucide-vue-next'
 import {ref, computed} from 'vue'
-import hero1 from '../images/hero/hero-1.png'
-import hero2 from '../images/hero/hero-2.png'
-import hero3 from '../images/hero/hero-3.png'
+import hero1 from '/images/hero/hero-1.png'
+import hero2 from '/images/hero/hero-2.png'
+import hero3 from '/images/hero/hero-3.png'
 
 const currentSlide = ref(0)
 const slides = [
