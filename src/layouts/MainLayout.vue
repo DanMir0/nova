@@ -6,7 +6,7 @@ import NHeader from "../components/NHeader.vue";
     <div class="min-h-screen bg-white text-neutral-950">
         <NHeader />
 
-        <main>
+        <main class="mt-20">
             <slot />
         </main>
     </div>

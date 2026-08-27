@@ -9,17 +9,21 @@ export const useProductsStore = defineStore('products', () => {
     const loading = ref(false)
     const error = ref(null)
 
-    const filters = ref({
-        gender: null,
+    const defaultFilters = () => ({
+        search: '',
         category: null,
+        gender: null,
         collection: null,
-
+        color: null,
+        size: null,
+        minPrice: null,
+        maxPrice: null,
         isNew: false,
         isSale: false,
-
-        search: '',
         sort: 'newest',
     })
+
+    const filters = ref(defaultFilters())
 
     const fetchProducts = async () => {
         try {
@@ -47,15 +51,7 @@ export const useProductsStore = defineStore('products', () => {
     }
 
     const resetFilters = () => {
-        filters.value = {
-            gender: null,
-            category: null,
-            collection: null,
-            isNew: false,
-            isSale: false,
-            search: '',
-            sort: 'newest',
-        }
+        filters.value = defaultFilters()
     }
 
     const productCount = computed(() => {
@@ -67,6 +63,10 @@ export const useProductsStore = defineStore('products', () => {
             filters.value.gender !== null ||
             filters.value.category !== null ||
             filters.value.collection !== null ||
+            filters.value.color !== null ||
+            filters.value.size !== null ||
+            filters.value.minPrice !== null ||
+            filters.value.maxPrice !== null ||
             filters.value.isNew ||
             filters.value.isSale ||
             filters.value.search !== ''

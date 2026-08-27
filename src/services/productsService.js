@@ -18,6 +18,14 @@ export async function getProducts(filters = {}) {
         query = query.eq('collection', filters.collection)
     }
 
+    if (filters.color) {
+        query = query.contains('colors', [filters.color])
+    }
+
+    if (filters.size) {
+        query = query.contains('sizes', [filters.size])
+    }
+
     if (filters.isNew) {
         query = query.eq('is_new', true)
     }
@@ -26,34 +34,55 @@ export async function getProducts(filters = {}) {
         query = query.eq('is_sale', true)
     }
 
+    if (filters.minPrice !== null && filters.minPrice !== '') {
+        query = query.gte('price', filters.minPrice)
+    }
+
+    if (filters.maxPrice !== null && filters.maxPrice !== '') {
+        query = query.lte('price', filters.maxPrice)
+    }
+
     if (filters.search) {
-        query = query.or(
-            `name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
-        )
+        const search = filters.search.trim()
+
+        if (search) {
+            query = query.or(
+                `name.ilike.%${search}%,description.ilike.%${search}%`
+            )
+        }
     }
 
     switch (filters.sort) {
         case 'price-asc':
-            query = query.order('price', { ascending: true })
+            query = query.order('price', {
+                ascending: true,
+            })
             break
 
         case 'price-desc':
-            query = query.order('price', { ascending: false })
+            query = query.order('price', {
+                ascending: false,
+            })
             break
 
         case 'name-asc':
-            query = query.order('name', { ascending: true })
+            query = query.order('name', {
+                ascending: true,
+            })
             break
 
         case 'newest':
         default:
-            query = query.order('created_at', { ascending: false })
+            query = query.order('created_at', {
+                ascending: false,
+            })
             break
     }
 
     const { data, error } = await query
 
     if (error) {
+        console.error('getProducts error:', error)
         throw error
     }
 

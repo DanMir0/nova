@@ -1,336 +1,355 @@
 <script setup>
-import {
-  computed,
-  onMounted,
-  ref,
-  watch,
-} from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+import { useProductsStore } from '../stores/products'
+
 import ProductFilters from '../components/shop/ProductFilters.vue'
 import ProductGrid from '../components/shop/ProductGrid.vue'
-import ProductToolbar from '../components/shop/ProductToolbar.vue'
 import ProductGridLoader from '../components/shop/ProductGridLoader.vue'
-import {useRoute, useRouter} from 'vue-router'
-
-import {useProductsStore} from '../stores/products'
+import ProductToolbar from '../components/shop/ProductToolbar.vue'
 
 const route = useRoute()
 const router = useRouter()
-
 const productsStore = useProductsStore()
 
 const mobileFiltersOpen = ref(false)
 
-const searchInput = ref(
-    productsStore.filters.search
-)
-
-const categories = [
-  {
-    value: 't-shirts',
-    label: 'Футболки',
-  },
-  {
-    value: 'shirts',
-    label: 'Рубашки',
-  },
-  {
-    value: 'jackets',
-    label: 'Жакеты и куртки',
-  },
-  {
-    value: 'pants',
-    label: 'Брюки',
-  },
-  {
-    value: 'dresses',
-    label: 'Платья',
-  },
-  {
-    value: 'shoes',
-    label: 'Обувь',
-  },
-  {
-    value: 'accessories',
-    label: 'Аксессуары',
-  },
-]
-
-const categoryClass = (value) => {
-  const active =
-      productsStore.filters.category === value
-
-  return [
-    'block text-sm transition',
-    active
-        ? 'font-medium text-neutral-950'
-        : 'text-neutral-500 hover:text-neutral-950',
-  ]
+const categoryLabels = {
+  't-shirts': 'Футболки',
+  shirts: 'Рубашки',
+  jackets: 'Жакеты и куртки',
+  pants: 'Брюки',
+  dresses: 'Платья',
+  shoes: 'Обувь',
+  accessories: 'Аксессуары',
 }
 
-const filterClass = (value, name) => {
-  const active =
-      productsStore.filters[name] === value
+const pageTitle = computed(() => {
+  if (route.query.gender === 'women') {
+    return 'Женщинам'
+  }
 
-  return [
-    'block text-sm transition',
-    active
-        ? 'font-medium text-neutral-950'
-        : 'text-neutral-500 hover:text-neutral-950',
+  if (route.query.gender === 'men') {
+    return 'Мужчинам'
+  }
+
+  if (route.query.new === 'true') {
+    return 'Новинки'
+  }
+
+  if (route.query.sale === 'true') {
+    return 'Распродажа'
+  }
+
+  if (route.query.category) {
+    return categoryLabels[route.query.category]
+        || 'Каталог'
+  }
+
+  return 'Каталог'
+})
+
+const breadcrumbs = computed(() => {
+  const items = [
+    {
+      label: 'Главная',
+      to: '/',
+    },
   ]
+
+  if (route.query.gender === 'women') {
+    items.push({
+      label: 'Женщинам',
+      to: {
+        path: '/shop',
+        query: {
+          gender: 'women',
+        },
+      },
+    })
+  }
+
+  if (route.query.gender === 'men') {
+    items.push({
+      label: 'Мужчинам',
+      to: {
+        path: '/shop',
+        query: {
+          gender: 'men',
+        },
+      },
+    })
+  }
+
+  if (route.query.category) {
+    items.push({
+      label:
+          categoryLabels[route.query.category]
+          || route.query.category,
+    })
+  }
+
+  if (route.query.new === 'true') {
+    items.push({
+      label: 'Новинки',
+    })
+  }
+
+  if (route.query.sale === 'true') {
+    items.push({
+      label: 'Распродажа',
+    })
+  }
+
+  return items
+})
+
+const syncFiltersFromUrl = () => {
+  productsStore.filters.gender =
+      route.query.gender || null
+
+  productsStore.filters.category =
+      route.query.category || null
+
+  productsStore.filters.collection =
+      route.query.collection || null
+
+  productsStore.filters.color =
+      route.query.color || null
+
+  productsStore.filters.size =
+      route.query.size || null
+
+  productsStore.filters.search =
+      route.query.search || ''
+
+  productsStore.filters.isNew =
+      route.query.new === 'true'
+
+  productsStore.filters.isSale =
+      route.query.sale === 'true'
 }
 
-const toggleClass = (active) => {
-  return [
-    'block text-sm transition',
-    active
-        ? 'font-medium text-neutral-950'
-        : 'text-neutral-500 hover:text-neutral-950',
-  ]
-}
-
-const updateUrl = async () => {
-  const filters = productsStore.filters
-
-  const query = {}
-
-  if (filters.gender) {
-    query.gender = filters.gender
+const updateQuery = (changes = {}) => {
+  const query = {
+    ...route.query,
+    ...changes,
   }
 
-  if (filters.category) {
-    query.category = filters.category
-  }
+  // Удаляем пустые значения из URL
+  Object.keys(query).forEach((key) => {
+    if (
+        query[key] === null ||
+        query[key] === undefined ||
+        query[key] === '' ||
+        query[key] === false
+    ) {
+      delete query[key]
+    }
+  })
 
-  if (filters.collection) {
-    query.collection = filters.collection
-  }
-
-  if (filters.isNew) {
-    query.new = 'true'
-  }
-
-  if (filters.isSale) {
-    query.sale = 'true'
-  }
-
-  if (filters.search) {
-    query.search = filters.search
-  }
-
-  if (filters.sort !== 'newest') {
-    query.sort = filters.sort
-  }
-
-  await router.replace({
+  router.push({
+    path: '/shop',
     query,
   })
 }
 
-const loadFromUrl = () => {
-  const query = route.query
-
-  productsStore.filters.gender = typeof query.gender === 'string'
-      ? query.gender
-      : null
-
-  productsStore.filters.category =
-      typeof query.category === 'string'
-          ? query.category
-          : null
-
-  productsStore.filters.collection =
-      typeof query.collection === 'string'
-          ? query.collection
-          : null
-
-  productsStore.filters.isNew =
-      query.new === 'true'
-
-  productsStore.filters.isSale =
-      query.sale === 'true'
-
-  productsStore.filters.search =
-      typeof query.search === 'string'
-          ? query.search
-          : ''
-
-  productsStore.filters.sort =
-      typeof query.sort === 'string'
-          ? query.sort
-          : 'newest'
-
-  searchInput.value =
-      productsStore.filters.search
+const selectCategory = (value) => {
+  updateQuery({
+    category: value,
+  })
 }
 
-const reload = async () => {
-  await updateUrl()
-  await productsStore.fetchProducts()
+const selectGender = (value) => {
+  updateQuery({
+    gender: value,
+  })
 }
 
-const selectCategory = async (category) => {
-  productsStore.setFilter(
-      'category',
-      category
-  )
-
-  await reload()
+const selectCollection = (value) => {
+  updateQuery({
+    collection: value,
+  })
 }
 
-const selectGender = async (gender) => {
-  productsStore.setFilter(
-      'gender',
-      gender
-  )
-
-  await reload()
+const selectColor = (value) => {
+  updateQuery({
+    color: value,
+  })
 }
 
-const selectCollection = async (collection) => {
-  productsStore.setFilter(
-      'collection',
-      collection
-  )
-
-  await reload()
+const toggleNew = () => {
+  updateQuery({
+    new: productsStore.filters.isNew
+        ? null
+        : 'true',
+  })
 }
 
-const toggleNew = async () => {
-  productsStore.setFilter(
-      'isNew',
-      !productsStore.filters.isNew
-  )
-
-  await reload()
+const toggleSale = () => {
+  updateQuery({
+    sale: productsStore.filters.isSale
+        ? null
+        : 'true',
+  })
 }
 
-const toggleSale = async () => {
-  productsStore.setFilter(
-      'isSale',
-      !productsStore.filters.isSale
-  )
-
-  await reload()
+const changeSort = (value) => {
+  updateQuery({
+    sort: value,
+  })
 }
 
-const resetFilters = async () => {
-  productsStore.resetFilters()
-
-  searchInput.value = ''
-
-  await reload()
+const resetFilters = () => {
+  router.push({
+    path: '/shop',
+  })
 }
 
-const changeSort = async (event) => {
-  productsStore.setFilter(
-      'sort',
-      event.target.value
-  )
-
-  await reload()
-}
-
-let searchTimeout
-
-watch(searchInput, (value) => {
-  clearTimeout(searchTimeout)
-
-  searchTimeout = setTimeout(async () => {
-    productsStore.setFilter(
-        'search',
-        value.trim()
-    )
-
-    await reload()
-  }, 400)
-})
-
-const syncWithRoute = async () => {
-  loadFromUrl()
+const loadFromUrl = async () => {
+  syncFiltersFromUrl()
 
   await productsStore.fetchProducts()
 }
-
-onMounted(() => {
-  syncWithRoute()
-})
 
 watch(
     () => route.query,
-    () => {
-      loadFromUrl()
+    async () => {
+      await loadFromUrl()
+    },
+    {
+      deep: true,
     }
 )
+
+onMounted(() => {
+  loadFromUrl()
+})
 </script>
+
 
 <template>
   <main class="min-h-screen bg-white">
-    <section class="mx-auto max-w-[1440px] px-5 pb-24 pt-28 sm:px-8 lg:px-10 lg:pt-36">
-      <!-- Header -->
-      <div class="mb-10 flex flex-col gap-6 border-b border-neutral-200 pb-8 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p class="text-xs uppercase tracking-[0.12em] text-neutral-500">Nova</p>
-          <h1 class="mt-3 text-4xl font-light tracking-[-0.03em] sm:text-5xl">Магазин</h1>
-          <p class="mt-3 text-sm text-neutral-500">{{ productsStore.productCount }} товаров</p>
-        </div>
+    <div
+        class="mx-auto w-full max-w-[1440px] px-5 pb-20 pt-8 sm:px-8 lg:px-10 xl:px-12">
 
-        <!-- Search -->
-        <div class="relative w-full lg:w-80">
-          <input
-              v-model="searchInput"
-              type="search"
-              placeholder="Поиск товаров..."
-              class="w-full border-b border-neutral-300 bg-transparent py-3 pr-4 text-sm outline-none transition focus:border-neutral-950"
-          />
-        </div>
+      <nav
+          class="mb-5 flex items-center gap-2 text-xs text-neutral-400"
+          aria-label="Breadcrumb">
+        <template
+            v-for="(item, index) in breadcrumbs"
+            :key="`${item.label}-${index}`">
+        <span
+            v-if="index > 0"
+            class="text-neutral-300">
+            /
+          </span>
+
+        <RouterLink
+            v-if="item.to"
+            :to="item.to"
+            class="transition hover:text-black">
+          {{ item.label }}
+        </RouterLink>
+
+        <span
+            v-else
+            class="text-neutral-500">
+            {{ item.label }}
+          </span>
+        </template>
+      </nav>
+
+      <header class="mb-8">
+        <h1
+            class="text-3xl font-normal tracking-tight sm:text-4xl">
+          {{ pageTitle }}
+        </h1>
+      </header>
+
+      <div class="mb-5 lg:hidden">
+        <button
+            type="button"
+            class="flex w-full items-center justify-between border border-neutral-200 px-4 py-3 text-sm"
+            @click="mobileFiltersOpen = !mobileFiltersOpen">
+          <span class="flex items-center gap-2">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5">
+              <path d="M4 6h16" />
+              <path d="M7 12h10" />
+              <path d="M10 18h4" />
+            </svg>
+
+            Фильтры
+          </span>
+
+          <span>
+            {{ mobileFiltersOpen ? '−' : '+' }}
+          </span>
+        </button>
       </div>
 
-      <!-- Mobile filters button -->
-      <button
-          type="button"
-          class="mb-8 flex w-full items-center justify-center border border-neutral-300 px-5 py-3 text-sm lg:hidden"
-          @click="mobileFiltersOpen = !mobileFiltersOpen">
-        Фильтры
-      </button>
+      <div
+          v-if="mobileFiltersOpen"
+          class="mb-8 lg:hidden">
+        <ProductFilters
+            :filters="productsStore.filters"
+            :has-active-filters="productsStore.hasActiveFilters"
+            @update:category="selectCategory"
+            @update:gender="selectGender"
+            @update:collection="selectCollection"
+            @update:color="selectColor"
+            @toggle:new="toggleNew"
+            @toggle:sale="toggleSale"
+            @reset="resetFilters"
+        />
+      </div>
 
-      <!-- ★★★ ИСПРАВЛЕННАЯ СТРУКТУРА ★★★ -->
-      <div class="grid gap-10 lg:grid-cols-[220px_1fr]">
+      <div
+          class="grid gap-8 lg:grid-cols-[180px_minmax(0,1fr)]">
+
         <!-- Sidebar -->
-        <aside>
+        <aside class="hidden lg:block">
           <ProductFilters
               :filters="productsStore.filters"
               :has-active-filters="productsStore.hasActiveFilters"
               @update:category="selectCategory"
               @update:gender="selectGender"
               @update:collection="selectCollection"
+              @update:color="selectColor"
               @toggle:new="toggleNew"
               @toggle:sale="toggleSale"
               @reset="resetFilters"/>
         </aside>
 
         <!-- Products -->
-        <section>
+        <section class="min-w-0">
+
           <ProductToolbar
               :count="productsStore.productCount"
               :sort="productsStore.filters.sort"
               @update:sort="changeSort"/>
 
-          <!-- Loading -->
-          <ProductGridLoader v-if="productsStore.loading" />
+          <!-- Loader -->
+          <ProductGridLoader
+              v-if="productsStore.loading"/>
 
-          <!-- Error -->
-          <div v-else-if="productsStore.error" class="py-20 text-center">
-            <p class="text-sm text-red-500">{{ productsStore.error }}</p>
-          </div>
+          <!-- Products -->
+          <ProductGrid
+              v-else
+              :products="productsStore.products"/>
 
-          <!-- Grid -->
-          <ProductGrid v-else :products="productsStore.products" />
         </section>
+
       </div>
-    </section>
+
+    </div>
   </main>
 </template>
-
-<style scoped>
-
-</style>
