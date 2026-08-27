@@ -1,4 +1,6 @@
 <script setup>
+import {formatPrice} from "../../utils/formatPrice.js";
+
 defineProps({
   product: {
     type: Object,
@@ -70,7 +72,7 @@ const handleImageError = (event) => {
       <div class="mt-1 flex items-center gap-2">
 
         <span class="text-sm font-medium">
-          {{ product.price }} €
+          {{ formatPrice(product.price )}}
         </span>
 
         <span

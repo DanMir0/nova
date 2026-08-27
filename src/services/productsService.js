@@ -45,7 +45,7 @@ export async function getProducts(filters = {}) {
     if (filters.search) {
         const search = filters.search.trim()
 
-        if (search) {
+        if (search.length > 0) {
             query = query.or(
                 `name.ilike.%${search}%,description.ilike.%${search}%`
             )

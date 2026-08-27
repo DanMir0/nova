@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
+import router from "../router/index.js";
 import { useProductsStore } from '../stores/products'
 
 import ProductFilters from '../components/shop/ProductFilters.vue'
@@ -10,7 +10,6 @@ import ProductGridLoader from '../components/shop/ProductGridLoader.vue'
 import ProductToolbar from '../components/shop/ProductToolbar.vue'
 
 const route = useRoute()
-const router = useRouter()
 const productsStore = useProductsStore()
 
 const mobileFiltersOpen = ref(false)
@@ -106,48 +105,39 @@ const breadcrumbs = computed(() => {
 })
 
 const syncFiltersFromUrl = () => {
-  productsStore.filters.gender =
-      route.query.gender || null
+  productsStore.setFilter('gender', route.query.gender || null )
 
-  productsStore.filters.category =
-      route.query.category || null
+  productsStore.setFilter('category', route.query.category || null)
 
-  productsStore.filters.collection =
-      route.query.collection || null
+  productsStore.setFilter('collection', route.query.collection || null)
 
-  productsStore.filters.color =
-      route.query.color || null
+  productsStore.setFilter('color', route.query.color || null)
 
-  productsStore.filters.size =
-      route.query.size || null
+  productsStore.setFilter('size',route.query.size || null)
 
-  productsStore.filters.search =
-      route.query.search || ''
+  productsStore.setFilter('search', route.query.search || '')
 
-  productsStore.filters.isNew =
-      route.query.new === 'true'
+  productsStore.setFilter('isNew', route.query.new === 'true')
 
-  productsStore.filters.isSale =
-      route.query.sale === 'true'
+  productsStore.setFilter('isSale', route.query.sale === 'true')
+
+  productsStore.setFilter('sort',route.query.sort || 'newest')
 }
 
-const updateQuery = (changes = {}) => {
+const updateQuery = (key, value) => {
   const query = {
     ...route.query,
-    ...changes,
   }
 
-  // Удаляем пустые значения из URL
-  Object.keys(query).forEach((key) => {
-    if (
-        query[key] === null ||
-        query[key] === undefined ||
-        query[key] === '' ||
-        query[key] === false
-    ) {
-      delete query[key]
-    }
-  })
+  if (
+      value === null ||
+      value === undefined ||
+      value === ''
+  ) {
+    delete query[key]
+  } else {
+    query[key] = value
+  }
 
   router.push({
     path: '/shop',
@@ -156,51 +146,32 @@ const updateQuery = (changes = {}) => {
 }
 
 const selectCategory = (value) => {
-  updateQuery({
-    category: value,
-  })
+  updateQuery('category', value)
 }
 
 const selectGender = (value) => {
-  updateQuery({
-    gender: value,
-  })
+  updateQuery('gender', value)
 }
 
 const selectCollection = (value) => {
-  updateQuery({
-    collection: value,
-  })
+  updateQuery('collection', value)
 }
 
 const selectColor = (value) => {
-  updateQuery({
-    color: value,
-  })
+  updateQuery('color', value)
 }
 
 const toggleNew = () => {
-  updateQuery({
-    new: productsStore.filters.isNew
-        ? null
-        : 'true',
-  })
+ updateQuery('new', productsStore.filters.isNew ? null : true)
 }
 
 const toggleSale = () => {
-  updateQuery({
-    sale: productsStore.filters.isSale
-        ? null
-        : 'true',
-  })
+  updateQuery('sale', productsStore.filters.isSale ? null : 'true')
 }
 
 const changeSort = (value) => {
-  updateQuery({
-    sort: value,
-  })
+  updateQuery('sort', value)
 }
-
 const resetFilters = () => {
   router.push({
     path: '/shop',
@@ -216,7 +187,8 @@ const loadFromUrl = async () => {
 watch(
     () => route.query,
     async () => {
-      await loadFromUrl()
+      syncFiltersFromUrl()
+      await productsStore.fetchProducts()
     },
     {
       deep: true,

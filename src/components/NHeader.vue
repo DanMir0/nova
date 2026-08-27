@@ -1,5 +1,37 @@
 <script setup>
 import {Search, UserRound, Heart, ShoppingBag, Menu,} from 'lucide-vue-next'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
+
+const searchInput = ref(
+    route.query.search || ''
+)
+
+let searchTimeout = null
+
+watch(searchInput, (value) => {
+  clearTimeout(searchTimeout)
+
+  searchTimeout = setTimeout(() => {
+    const query = {
+      ...route.query,
+    }
+
+    if (value.trim()) {
+      query.search = value.trim()
+    } else {
+      delete query.search
+    }
+
+    router.push({
+      path: '/shop',
+      query,
+    })
+  }, 300)
+})
 </script>
 
 <template>
@@ -48,12 +80,30 @@ import {Search, UserRound, Heart, ShoppingBag, Menu,} from 'lucide-vue-next'
 
             <!-- Actions -->
             <div class="flex items-center gap-5">
-                <button
-                    type="button"
-                    aria-label="Поиск"
-                    class="transition-opacity hover:opacity-50">
-                    <Search :size="20" :stroke-width="1.5"/>
-                </button>
+              <div class="relative">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    class="absolute left-3 top-1/2 -translate-y-1/2">
+                  <circle
+                      cx="11"
+                      cy="11"
+                      r="7"/>
+
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+
+                <input
+                    v-model="searchInput"
+                    type="search"
+                    placeholder="Поиск"
+                    class="w-48 border-b border-neutral-200 bg-transparent py-2 pl-10 pr-2 text-sm outline-none transition focus:border-black"/>
+              </div>
 
                 <router-link
                     to="/account"
