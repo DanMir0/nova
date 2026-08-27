@@ -5,6 +5,7 @@ import Shop from '../pages/Shop.vue'
 import Collections from '../pages/Collections.vue'
 import Cart from '../pages/Cart.vue'
 import Account from '../pages/Account.vue'
+import Product from "../pages/Product.vue";
 
 const routes = [
     {
@@ -31,6 +32,11 @@ const routes = [
         path: '/account',
         name: 'account',
         component: Account,
+    },
+    {
+        path: '/shop/:id',
+        name: 'product',
+        component: Product,
     },
 ]
 
