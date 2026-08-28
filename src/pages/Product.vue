@@ -23,6 +23,17 @@ const currentImage = ref(0)
 const selectedColor = ref(null)
 const selectedSize = ref(null)
 
+const categoryLabels = {
+  't-shirts': 'Футболки',
+  shirts: 'Рубашки',
+  jackets: 'Жакеты и куртки',
+  pants: 'Брюки',
+  dresses: 'Платья',
+  shoes: 'Обувь',
+  accessories: 'Аксессуары',
+  skirts: 'Юбки',
+}
+
 const colorMap = {
   beige: {
     name: 'Бежевый',
@@ -368,7 +379,7 @@ watch(
           <div
               v-if="product.category"
               class="mb-3 text-xs text-neutral-400">
-            {{ product.category }}
+            {{  categoryLabels[product.category] }}
           </div>
 
           <!-- Name -->
