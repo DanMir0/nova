@@ -94,7 +94,6 @@ export async function getProductById(id) {
         .from('products')
         .select('*')
         .eq('id', id)
-        .eq('is_active', true)
         .single()
 
     if (error) {
@@ -102,4 +101,22 @@ export async function getProductById(id) {
     }
 
     return data
+}
+
+export async function getProductVariants(product) {
+    if (!product?.variant_group_id) {
+        return []
+    }
+
+    const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('variant_group_id', product.variant_group_id)
+        .eq('is_active', true)
+
+    if (error) {
+        throw error
+    }
+
+    return data ?? []
 }
