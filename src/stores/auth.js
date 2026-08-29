@@ -139,6 +139,71 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    const resetPassword = async (email) => {
+        try {
+            loading.value = true
+            error.value = null
+
+            const { error: resetError } =
+                await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/account/reset-password`,
+                })
+
+            if (resetError) {
+                throw resetError
+            }
+
+            return {
+                success: true,
+            }
+        } catch (err) {
+            console.error('Reset password error:', err)
+
+            error.value =
+                err.message || 'Не удалось отправить письмо'
+
+            return {
+                success: false,
+                error: error.value,
+            }
+        } finally {
+            loading.value = false
+        }
+    }
+
+    const updatePassword = async (password) => {
+        try {
+            loading.value = true
+            error.value = null
+
+            const { data, error: updateError } =
+                await supabase.auth.updateUser({
+                    password,
+                })
+
+            if (updateError) {
+                throw updateError
+            }
+
+            return {
+                success: true,
+                user: data.user,
+            }
+        } catch (err) {
+            console.error('Update password error:', err)
+
+            error.value =
+                err.message || 'Не удалось изменить пароль'
+
+            return {
+                success: false,
+                error: error.value,
+            }
+        } finally {
+            loading.value = false
+        }
+    }
+
     return {
         user,
         session,
@@ -150,5 +215,7 @@ export const useAuthStore = defineStore('auth', () => {
         signUp,
         signIn,
         signOut,
+        resetPassword,
+        updatePassword,
     }
 })

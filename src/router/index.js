@@ -6,6 +6,7 @@ import Collections from '../pages/Collections.vue'
 import Cart from '../pages/Cart.vue'
 import Account from '../pages/Account.vue'
 import Product from "../pages/Product.vue";
+import ResetPassword from "../pages/ResetPassword.vue";
 
 const routes = [
     {
@@ -37,6 +38,11 @@ const routes = [
         path: '/shop/:id',
         name: 'product',
         component: Product,
+    },
+    {
+        path: '/account/reset-password',
+        name: 'reset-password',
+        component: ResetPassword,
     },
 ]
 

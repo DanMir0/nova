@@ -14,7 +14,7 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const repeatPassword = ref('')
-
+const success = ref(false)
 const showPassword = ref(false)
 const showRepeatPassword = ref(false)
 
@@ -67,10 +67,75 @@ const getErrorMessage = (message) => {
 
   return message
 }
+
+const handleSubmit = async () => {
+  errorMessage.value = null
+
+  if (!email.value || !password.value) {
+    errorMessage.value = 'Заполните все поля'
+    return
+  }
+
+  if (password.value !== passwordConfirm.value) {
+    errorMessage.value = 'Пароли не совпадают'
+    return
+  }
+
+  const result = await authStore.signUp(
+      email.value,
+      password.value
+  )
+
+  if (!result.success) {
+    errorMessage.value = result.error
+    return
+  }
+
+  success.value = true
+}
 </script>
 
 <template>
   <div
+      v-if="success"
+      class="flex flex-col items-center px-6 py-10 text-center"
+  >
+    <div
+        class="mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-black"
+    >
+      <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+      >
+        <path d="m5 12 4 4L19 6" />
+      </svg>
+    </div>
+
+    <h2 class="text-2xl font-normal tracking-tight">
+      Регистрация завершена
+    </h2>
+
+    <p class="mt-4 max-w-sm text-sm leading-6 text-neutral-500">
+      Мы отправили письмо для подтверждения
+      вашего e-mail. Проверьте почту и перейдите
+      по ссылке в письме.
+    </p>
+
+    <button
+        type="button"
+        class="mt-8 w-full bg-black px-6 py-4 text-sm text-white transition hover:bg-neutral-800"
+        @click="$emit('close')"
+    >
+      Понятно
+    </button>
+  </div>
+  <div
+      v-else
       class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
       @click.self="emit('close')"
   >
