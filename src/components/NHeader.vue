@@ -5,6 +5,7 @@ import {useRoute, useRouter} from 'vue-router'
 import {useAuthStore} from '../stores/auth'
 import LoginModal from '../components/auth/LoginModal.vue'
 import RegisterModal from '../components/auth/RegisterModal.vue'
+import ForgotPasswordModal from "./auth/ForgotPasswordModal.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -12,6 +13,7 @@ const authStore = useAuthStore()
 
 const showLoginModal = ref(false)
 const showRegisterModal = ref(false)
+const showForgotModal = ref(false)
 
 const searchInput = ref(
     route.query.search || ''
@@ -42,22 +44,35 @@ watch(searchInput, (value) => {
 
 function openLogin() {
   showRegisterModal.value = false
+  showForgotModal.value = false
   showLoginModal.value = true
 }
 
 function openRegister() {
   showLoginModal.value = false
+  showForgotModal.value = false
   showRegisterModal.value = true
+}
+
+function openForgot() {
+  showLoginModal.value = false
+  showRegisterModal.value = false
+  showForgotModal.value = true
 }
 
 function closeAuthModals() {
   showLoginModal.value = false
   showRegisterModal.value = false
+  showForgotModal.value = false
 }
 
 function handleRegisterSuccess() {
   showRegisterModal.value = false
   showLoginModal.value = false
+}
+
+const handleLoginSuccess = () => {
+  closeAuthModals()
 }
 </script>
 
@@ -181,13 +196,20 @@ function handleRegisterSuccess() {
   <LoginModal
       v-if="showLoginModal"
       @close="closeAuthModals"
-      @register="openRegister"/>
+      @register="openRegister"
+      @forgot-password="openForgot"
+      @succes="handleLoginSuccess"/>
 
   <RegisterModal
       v-if="showRegisterModal"
       @close="closeAuthModals"
       @login="openLogin"
       @success="handleRegisterSuccess"/>
+
+  <ForgotPasswordModal
+      v-if="showForgotModal"
+      @close="closeAuthModals"
+      @login="openLogin"/>
 </template>
 
 <style scoped>

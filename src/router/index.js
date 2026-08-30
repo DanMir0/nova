@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
+import {useAuthStore} from "../stores/auth.js";
 import Home from '../pages/Home.vue'
 import Shop from '../pages/Shop.vue'
 import Collections from '../pages/Collections.vue'
 import Cart from '../pages/Cart.vue'
 import Account from '../pages/Account.vue'
 import Product from "../pages/Product.vue";
+import AuthCallback from "../pages/AuthCallback.vue";
 import ResetPassword from "../pages/ResetPassword.vue";
 
 const routes = [
@@ -33,6 +34,9 @@ const routes = [
         path: '/account',
         name: 'account',
         component: Account,
+        meta: {
+            requiresAuth: true,
+        },
     },
     {
         path: '/shop/:id',
@@ -40,15 +44,31 @@ const routes = [
         component: Product,
     },
     {
-        path: '/account/reset-password',
+        path: '/auth/reset-password',
         name: 'reset-password',
         component: ResetPassword,
+    },
+    {
+        path: '/auth/callback',
+        name: 'auth-callback',
+        component: AuthCallback,
     },
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
+})
+
+
+router.beforeEach(async (to) => {
+    const authStore = useAuthStore()
+
+    await authStore.initialize()
+
+    if (to.meta.requiresAuth && !authStore.user) {
+        return '/'
+    }
 })
 
 export default router

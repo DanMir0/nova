@@ -47,10 +47,16 @@ export const useAuthStore = defineStore('auth', () => {
             loading.value = true
             error.value = null
 
+            const redirectTo = `${window.location.origin}/auth/callback`
+
             const { data, error: signUpError } =
                 await supabase.auth.signUp({
                     email,
                     password,
+
+                    options: {
+                        emailRedirectTo: redirectTo,
+                    },
                 })
 
             if (signUpError) {
@@ -68,7 +74,8 @@ export const useAuthStore = defineStore('auth', () => {
         } catch (err) {
             console.error('Sign up error:', err)
 
-            error.value = err.message || 'Не удалось зарегистрироваться'
+            error.value =
+                err.message || 'Не удалось зарегистрироваться'
 
             return {
                 success: false,
