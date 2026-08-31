@@ -8,6 +8,7 @@ import Account from '../pages/Account.vue'
 import Product from "../pages/Product.vue";
 import AuthCallback from "../pages/AuthCallback.vue";
 import ResetPassword from "../pages/ResetPassword.vue";
+import Favorites from "../pages/Favorites.vue";
 
 const routes = [
     {
@@ -52,6 +53,11 @@ const routes = [
         path: '/auth/callback',
         name: 'auth-callback',
         component: AuthCallback,
+    },
+    {
+        path: '/favorites',
+        name: 'favorites',
+        component: Favorites,
     },
 ]
 
