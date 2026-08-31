@@ -6,10 +6,12 @@ import {useAuthStore} from '../stores/auth'
 import LoginModal from '../components/auth/LoginModal.vue'
 import RegisterModal from '../components/auth/RegisterModal.vue'
 import ForgotPasswordModal from "./auth/ForgotPasswordModal.vue";
+import { useFavoritesStore } from '../stores/favorites'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const favoritesStore = useFavoritesStore()
 
 const showLoginModal = ref(false)
 const showRegisterModal = ref(false)
@@ -164,12 +166,14 @@ const handleLoginSuccess = () => {
           <UserRound :size="20" :stroke-width="1.5"/>
         </router-link>
 
-        <button
-            type="button"
+        <RouterLink
+            to="/favorites"
             aria-label="Избранное"
-            class="hidden transition-opacity hover:opacity-50 sm:block">
-          <Heart :size="20" :stroke-width="1.5"/>
-        </button>
+            class="hidden cursor-pointer transition-opacity hover:opacity-50 sm:block">
+          <Heart
+              :size="20"
+              :stroke-width="1.5"/>
+        </RouterLink>
 
         <router-link
             to="/cart"

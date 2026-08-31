@@ -7,6 +7,10 @@ defineProps({
     default: () => [],
   },
 })
+
+const emit = defineEmits([
+  'login',
+])
 </script>
 <template>
   <div
@@ -15,7 +19,8 @@ defineProps({
     <ProductCard
         v-for="product in products"
         :key="product.id"
-        :product="product"/>
+        :product="product"
+        @login="emit('login')"/>
   </div>
 
   <div

@@ -3,13 +3,14 @@ import {computed, onMounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import SizeChart from "../components/shop/SizeChart.vue";
 import {getProductById, getProductVariants,} from '../services/productsService'
-
+import { useFavoritesStore } from '../stores/favorites'
 import {formatPrice} from '../utils/formatPrice'
 import {useCartStore} from '../stores/cart'
 
 const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
+const favoritesStore = useFavoritesStore()
 
 const isSizeChartOpen = ref(false)
 const product = ref(null)
@@ -69,6 +70,22 @@ const colorMap = {
     name: 'Синий',
     hex: '#4f6d8a',
   },
+}
+
+const isFavorite = computed(() => {
+  if (!product.value) {
+    return false
+  }
+
+  return favoritesStore.isFavorite(product.value.id)
+})
+
+const toggleFavorite = () => {
+  if (!product.value) {
+    return
+  }
+
+  favoritesStore.toggleFavorite(product.value)
 }
 
 const getColorHex = (color) => {
@@ -494,7 +511,6 @@ watch(
               </svg>
 
             </button>
-
           </div>
 
           <!-- Description -->
