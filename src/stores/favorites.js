@@ -20,6 +20,14 @@ export const useFavoritesStore = defineStore('favorites', () => {
         return favoriteIds.value.has(productId)
     }
 
+    const initialize = async () => {
+        if (initialized.value) {
+            return
+        }
+
+        await loadFavorites()
+    }
+
     const loadFavorites = async () => {
         if (!authStore.user) {
             favorites.value = []
@@ -168,5 +176,6 @@ export const useFavoritesStore = defineStore('favorites', () => {
         removeFavorite,
         toggleFavorite,
         clearFavorites,
+        initialize,
     }
 })

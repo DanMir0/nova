@@ -316,8 +316,7 @@ onMounted(() => {
           <!-- Products -->
           <ProductGrid
               v-else
-              :products="productsStore.products"
-              @login="openLogin"/>
+              :products="productsStore.products"/>
 
         </section>
 

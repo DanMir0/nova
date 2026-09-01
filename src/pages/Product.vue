@@ -3,7 +3,7 @@ import {computed, onMounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import SizeChart from "../components/shop/SizeChart.vue";
 import {getProductById, getProductVariants,} from '../services/productsService'
-import { useFavoritesStore } from '../stores/favorites'
+import {useFavoritesStore} from '../stores/favorites'
 import {formatPrice} from '../utils/formatPrice'
 import {useCartStore} from '../stores/cart'
 
@@ -80,12 +80,21 @@ const isFavorite = computed(() => {
   return favoritesStore.isFavorite(product.value.id)
 })
 
-const toggleFavorite = () => {
+const toggleProductFavorite = async () => {
   if (!product.value) {
     return
   }
 
-  favoritesStore.toggleFavorite(product.value)
+  const result = await favoritesStore.toggleFavorite(product.value.id)
+
+  if (result.requiresAuth) {
+    console.log('Нужно войти в аккаунт')
+    return
+  }
+
+  if (!result.success) {
+    console.error('Favorite error:', result.error)
+  }
 }
 
 const getColorHex = (color) => {
@@ -213,8 +222,8 @@ const addToCart = () => {
   )
 }
 
-onMounted(() => {
-  loadProduct()
+onMounted(async () => {
+  await loadProduct()
 })
 
 watch(
@@ -396,7 +405,7 @@ watch(
           <div
               v-if="product.category"
               class="mb-3 text-xs text-neutral-400">
-            {{  categoryLabels[product.category] }}
+            {{ categoryLabels[product.category] }}
           </div>
 
           <!-- Name -->
@@ -495,21 +504,23 @@ watch(
 
             <button
                 type="button"
-                class="flex h-[52px] w-[52px] cursor-pointer items-center justify-center border border-neutral-200 transition hover:border-black"
-                aria-label="Добавить в избранное">
-
+                class="flex h-[52px] w-[52px] cursor-pointer items-center justify-center border border-neutral-200
+                transition hover:border-black"
+                :class="isFavorite ? 'border-black' : '' "
+                :aria-label="favoritesStore.isFavorite(product.id)  ? 'Удалить из избранного' : 'Добавить в избранное'"
+                @click="toggleProductFavorite">
               <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
                   height="20"
                   viewBox="0 0 24 24"
-                  fill="none"
+                  :fill="isFavorite  ? 'black'  : 'none'"
                   stroke="currentColor"
                   stroke-width="1.5">
                 <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"/>
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12
+                    21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"/>
               </svg>
-
             </button>
           </div>
 
