@@ -23,6 +23,7 @@ const currentImage = ref(0)
 
 const selectedColor = ref(null)
 const selectedSize = ref(null)
+const isAddedToCart = ref(false)
 
 const categoryLabels = {
   't-shirts': 'Футболки',
@@ -220,6 +221,12 @@ const addToCart = () => {
       selectedSize.value,
       selectedColor.value
   )
+
+  isAddedToCart.value = true
+
+  setTimeout(() => {
+    isAddedToCart.value = false
+  }, 2500)
 }
 
 onMounted(async () => {
@@ -497,9 +504,11 @@ watch(
 
             <button
                 type="button"
-                class="flex-1 cursor-pointer bg-black px-6 py-4 text-sm text-white transition hover:bg-neutral-800"
+                :disabled="isAddedToCart"
+                class="w-full cursor-pointer px-6 py-4 text-sm text-white transition"
+                :class="isAddedToCart ? 'bg-neutral-500 cursor-default' : 'bg-black hover:bg-neutral-800'"
                 @click="addToCart">
-              Добавить в корзину
+              {{ isAddedToCart ? 'Добавлено ✓' : 'Добавить в корзину' }}
             </button>
 
             <button

@@ -1,10 +1,42 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+
+const STORAGE_KEY = 'nova-cart'
+
+const loadCart = () => {
+    try {
+        const savedCart = localStorage.getItem(STORAGE_KEY)
+
+        if (!savedCart) {
+            return []
+        }
+
+        const parsedCart = JSON.parse(savedCart)
+
+        return Array.isArray(parsedCart)
+            ? parsedCart
+            : []
+
+    } catch (error) {
+        console.error('Load cart from localStorage error:', error)
+
+        return []
+    }
+}
 
 export const useCartStore = defineStore('cart', () => {
-    const items = ref([])
 
-    const addToCart = (product, size, color, quantity = 1) => {
+    // Загружаем корзину из localStorage при создании store
+    const items = ref(loadCart())
+
+
+    const addToCart = (
+        product,
+        size,
+        color,
+        quantity = 1
+    ) => {
+
         const existingItem = items.value.find(
             item =>
                 item.product.id === product.id &&
@@ -13,7 +45,9 @@ export const useCartStore = defineStore('cart', () => {
         )
 
         if (existingItem) {
+
             existingItem.quantity += quantity
+
             return
         }
 
@@ -31,20 +65,25 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     const removeFromCart = (itemId) => {
+
         items.value = items.value.filter(
             item => item.id !== itemId
         )
     }
 
     const updateQuantity = (itemId, quantity) => {
+
         const item = items.value.find(
             item => item.id === itemId
         )
 
-        if (!item) return
+        if (!item) {
+            return
+        }
 
         if (quantity <= 0) {
             removeFromCart(itemId)
+
             return
         }
 
@@ -56,6 +95,7 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     const totalItems = computed(() => {
+
         return items.value.reduce(
             (total, item) => total + item.quantity,
             0
@@ -63,6 +103,7 @@ export const useCartStore = defineStore('cart', () => {
     })
 
     const totalPrice = computed(() => {
+
         return items.value.reduce(
             (total, item) =>
                 total +
@@ -71,6 +112,28 @@ export const useCartStore = defineStore('cart', () => {
             0
         )
     })
+
+    watch(
+        items,
+        (newItems) => {
+
+            try {
+                localStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify(newItems)
+                )
+
+            } catch (error) {
+                console.error(
+                    'Save cart to localStorage error:',
+                    error
+                )
+            }
+        },
+        {
+            deep: true,
+        }
+    )
 
     return {
         items,

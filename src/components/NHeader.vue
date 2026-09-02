@@ -6,12 +6,14 @@ import {useAuthStore} from '../stores/auth'
 import LoginModal from '../components/auth/LoginModal.vue'
 import RegisterModal from '../components/auth/RegisterModal.vue'
 import ForgotPasswordModal from "./auth/ForgotPasswordModal.vue";
-import { useFavoritesStore } from '../stores/favorites'
+import {useFavoritesStore} from '../stores/favorites'
+import {useCartStore} from "../stores/cart.js";
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const favoritesStore = useFavoritesStore()
+const cartStore = useCartStore()
 
 const showLoginModal = ref(false)
 const showRegisterModal = ref(false)
@@ -182,9 +184,10 @@ const handleLoginSuccess = () => {
           <ShoppingBag :size="20" :stroke-width="1.5"/>
 
           <span
-              class="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-neutral-950 px-1 text-[9px] text-white">
-                        2
-                    </span>
+              class="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-neutral-950
+              px-1 text-[9px] text-white">
+            {{ cartStore.totalItems }}
+          </span>
         </router-link>
 
         <!-- Mobile menu -->
