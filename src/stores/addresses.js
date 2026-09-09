@@ -1,33 +1,21 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
-const STORAGE_KEY = 'nova-addresses'
-
-const defaultAddresses = [
-    {
-        id: crypto.randomUUID(),
-        title: 'Дом',
-        city: 'Москва',
-        address: 'ул. Петровка, 17, кв. 5',
-        recipient: 'Анастасия',
-        phone: '+7 999 123-45-67',
-        isDefault: true,
-    },
-]
+const STORAGE_KEY = 'nova-addresses-v2'
 
 const loadAddresses = () => {
     try {
         const saved = localStorage.getItem(STORAGE_KEY)
 
         if (!saved) {
-            return defaultAddresses
+            return []
         }
 
         const parsed = JSON.parse(saved)
 
         return Array.isArray(parsed)
             ? parsed
-            : defaultAddresses
+            : []
 
     } catch (error) {
         console.error(
@@ -35,7 +23,7 @@ const loadAddresses = () => {
             error
         )
 
-        return defaultAddresses
+        return []
     }
 }
 
