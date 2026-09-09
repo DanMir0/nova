@@ -191,6 +191,14 @@ const makeDefault = (addressId) => {
 
                     </button>
 
+                    <RouterLink
+                        to="/delivery"
+                        class="mt-8 flex h-11 w-fit cursor-pointer items-center justify-center bg-black px-8 text-xs text-white transition hover:bg-neutral-800">
+
+                        Продолжить
+
+                    </RouterLink>
+
                 </section>
 
                 <section

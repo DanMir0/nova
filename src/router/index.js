@@ -10,6 +10,7 @@ import AuthCallback from "../pages/AuthCallback.vue";
 import ResetPassword from "../pages/ResetPassword.vue";
 import Favorites from "../pages/Favorites.vue";
 import Checkout from "../pages/Checkout.vue";
+import Delivery from "../pages/Delivery.vue";
 
 const routes = [
     {
@@ -64,6 +65,11 @@ const routes = [
         path: '/checkout',
         name: 'checkout',
         component: Checkout,
+    },
+    {
+        path: '/delivery',
+        name: 'delivery',
+        component: Delivery,
     },
 ]
 
