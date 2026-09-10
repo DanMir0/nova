@@ -11,6 +11,7 @@ import ResetPassword from "../pages/ResetPassword.vue";
 import Favorites from "../pages/Favorites.vue";
 import Checkout from "../pages/Checkout.vue";
 import Delivery from "../pages/Delivery.vue";
+import OrderConfirmation from "../pages/OrderConfirmation.vue";
 
 const routes = [
     {
@@ -70,6 +71,11 @@ const routes = [
         path: '/delivery',
         name: 'delivery',
         component: Delivery,
+    },
+    {
+        path: '/order-confirmation',
+        name: 'order-confirmation',
+        component: OrderConfirmation,
     },
 ]
 
