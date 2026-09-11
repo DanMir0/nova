@@ -53,3 +53,40 @@ export const createOrder = async ({
 
     return order
 }
+
+export const getUserOrders = async (userId) => {
+    const { data, error } = await supabase
+        .from('orders')
+        .select(`
+            id,
+            status,
+            total,
+            delivery_method,
+            delivery_price,
+            city,
+            address,
+            recipient,
+            phone,
+            created_at,
+            order_items (
+                id,
+                product_id,
+                product_name,
+                product_image,
+                price,
+                quantity,
+                size,
+                color
+            )
+        `)
+        .eq('user_id', userId)
+        .order('created_at', {
+            ascending: false,
+        })
+
+    if (error) {
+        throw error
+    }
+
+    return data || []
+}
