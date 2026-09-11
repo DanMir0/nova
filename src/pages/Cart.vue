@@ -58,9 +58,9 @@ const removePromo = () => {
                 <span
                         v-if="cartStore.totalItems"
                         class="text-xs text-neutral-400">
-          {{ cartStore.totalItems }}
-          {{ cartStore.totalItems === 1 ? 'товар' : 'товара' }}
-        </span>
+                  {{ cartStore.totalItems }}
+                  {{ cartStore.totalItems === 1 ? 'товар' : 'товара' }}
+                </span>
 
             </div>
 
@@ -94,21 +94,21 @@ const removePromo = () => {
                     <div
                             class="hidden grid-cols-[minmax(0,1fr)_100px_140px_110px_24px] items-center gap-5 border-b border-neutral-200 px-0 pb-4 text-[10px] uppercase tracking-wide text-neutral-400 md:grid">
 
-            <span>
-              Товар
-            </span>
+                        <span>
+                          Товар
+                        </span>
 
                         <span>
-              Цена
-            </span>
+                          Цена
+                        </span>
 
                         <span>
-              Количество
-            </span>
+                          Количество
+                        </span>
 
                         <span>
-              Итого
-            </span>
+                          Итого
+                        </span>
 
                         <span></span>
 
@@ -174,49 +174,46 @@ const removePromo = () => {
                             </div>
 
                             <!-- PRICE -->
-                            <div
-                                    class="flex items-center justify-between text-xs md:block">
+                            <div class="flex items-center justify-between text-xs md:block">
 
-                <span
-                        class="text-[10px] text-neutral-400 md:hidden">
-                  Цена
-                </span>
+                                <span
+                                      class="text-[10px] text-neutral-400 md:hidden">
+                                Цена
+                              </span>
 
                                 <span>
-                  {{ formatPrice(Number(item.product.price)) }}
-                </span>
+                                {{ formatPrice(Number(item.product.price)) }}
+                              </span>
 
                             </div>
 
-                            <!-- QUANTITY -->
-                            <div
-                                    class="flex items-center justify-between md:justify-start">
+                            <div class="flex items-center justify-between md:justify-start">
 
-                <span
-                        class="text-[10px] text-neutral-400 md:hidden">
-                  Количество
-                </span>
+                                <span class="text-[10px] text-neutral-400 md:hidden">
+                                  Количество
+                                </span>
 
-                                <div
-                                        class="flex h-8 items-center border border-neutral-200">
+                                <div class="flex h-8 items-center border border-neutral-200">
 
                                     <button
                                             type="button"
                                             aria-label="Уменьшить количество"
-                                            class="flex h-full w-8 cursor-pointer items-center justify-center text-sm text-neutral-400 transition hover:bg-neutral-100 hover:text-black"
+                                            class="flex h-full w-8 cursor-pointer items-center justify-center text-sm
+                                            text-neutral-400 transition hover:bg-neutral-100 hover:text-black"
                                             @click="cartStore.updateQuantity(item.id, item.quantity - 1)">
                                         −
                                     </button>
 
-                                    <span
-                                            class="flex h-full min-w-8 items-center justify-center border-x border-neutral-200 text-xs">
-                    {{ item.quantity }}
-                  </span>
+                                    <span class="flex h-full min-w-8 items-center justify-center border-x
+                                    border-neutral-200 text-xs">
+                                      {{ item.quantity }}
+                                    </span>
 
                                     <button
                                             type="button"
                                             aria-label="Увеличить количество"
-                                            class="flex h-full w-8 cursor-pointer items-center justify-center text-sm text-neutral-400 transition hover:bg-neutral-100 hover:text-black"
+                                            class="flex h-full w-8 cursor-pointer items-center justify-center text-sm
+                                            text-neutral-400 transition hover:bg-neutral-100 hover:text-black"
                                             @click="cartStore.updateQuantity(item.id, item.quantity + 1)">
                                         +
                                     </button>
@@ -225,22 +222,19 @@ const removePromo = () => {
 
                             </div>
 
-                            <!-- ITEM TOTAL -->
-                            <div
-                                    class="flex items-center justify-between text-xs md:block">
+                            <div class="flex items-center justify-between text-xs md:block">
 
-                <span
-                        class="text-[10px] text-neutral-400 md:hidden">
-                  Итого
-                </span>
+
+                                <span class="text-[10px] text-neutral-400 md:hidden">
+                                  Итого
+                                </span>
 
                                 <span>
-                   {{ formatPrice(Number(item.product.price) * item.quantity) }}
-                </span>
+                                   {{ formatPrice(Number(item.product.price) * item.quantity) }}
+                                </span>
 
                             </div>
 
-                            <!-- REMOVE -->
                             <button
                                     type="button"
                                     aria-label="Удалить товар"
@@ -257,8 +251,7 @@ const removePromo = () => {
 
                     </div>
 
-                    <div
-                            class="mt-6 flex items-center gap-2">
+                    <div class="mt-6 flex items-center gap-2">
 
                         <div class="relative w-full max-w-[300px]">
 
@@ -293,20 +286,17 @@ const removePromo = () => {
                             Применить
                         </button>
 
-                        <span
-                                v-else
-                                class="text-[10px] text-neutral-500">
-              Промокод применён
-            </span>
+                        <span v-else
+                              class="text-[10px] text-neutral-500">
+                          Промокод применён
+                        </span>
 
                     </div>
 
                 </section>
 
-                <aside
-                        class="h-fit border border-neutral-200">
+                <aside class="h-fit border border-neutral-200">
 
-                    <!-- ORDER SUMMARY -->
                     <div class="p-5 sm:p-6">
 
                         <h2 class="text-sm font-medium">
@@ -314,58 +304,54 @@ const removePromo = () => {
                         </h2>
 
                         <!-- Products -->
-                        <div
-                                class="mt-5 flex items-center justify-between text-xs">
+                        <div class="mt-5 flex items-center justify-between text-xs">
 
-              <span class="text-neutral-500">
-                Товары
-              </span>
+                            <span class="text-neutral-500">
+                              Товары
+                            </span>
 
                             <span>
-                {{ formatPrice(cartStore.totalPrice) }}
-              </span>
+                              {{ formatPrice(cartStore.totalPrice) }}
+                            </span>
 
                         </div>
 
                         <!-- Discount -->
-                        <div
-                                class="mt-3 flex items-center justify-between text-xs">
+                        <div class="mt-3 flex items-center justify-between text-xs">
 
-              <span class="text-neutral-500">
-                Скидка
-              </span>
+                            <span class="text-neutral-500">
+                              Скидка
+                            </span>
 
                             <span>
-                —
-              </span>
+                              —
+                            </span>
 
                         </div>
 
                         <!-- Delivery -->
-                        <div
-                                class="mt-3 flex items-center justify-between text-xs">
+                        <div class="mt-3 flex items-center justify-between text-xs">
 
-              <span class="text-neutral-500">
-                Доставка
-              </span>
+                            <span class="text-neutral-500">
+                              Доставка
+                            </span>
 
                             <span>
-                Бесплатно
-              </span>
+                              Бесплатно
+                            </span>
 
                         </div>
 
                         <!-- TOTAL -->
-                        <div
-                                class="mt-5 flex items-center justify-between border-t border-neutral-200 pt-5">
-
-              <span class="text-sm font-medium">
-                Итого к оплате
-              </span>
+                        <div class="mt-5 flex items-center justify-between border-t border-neutral-200 pt-5">
 
                             <span class="text-sm font-medium">
-                {{ formatPrice(cartStore.totalPrice) }}
-              </span>
+                              Итого к оплате
+                            </span>
+
+                            <span class="text-sm font-medium">
+                              {{ formatPrice(cartStore.totalPrice) }}
+                            </span>
 
                         </div>
 
@@ -373,7 +359,7 @@ const removePromo = () => {
                         <router-link
                                 to="/checkout"
                                 type="button"
-                                class="mt-5 w-full cursor-pointer bg-black px-5 py-3.5 text-xs text-white transition hover:bg-neutral-800">
+                                class="mt-5 flex items-center justify-center w-full cursor-pointer bg-black px-5 py-3.5 text-xs text-white transition hover:bg-neutral-800">
                             Оформить заказ
                         </router-link>
 
@@ -385,18 +371,14 @@ const removePromo = () => {
 
                     </div>
 
-                    <div
-                            class="grid grid-cols-3 border-t border-neutral-200">
+                    <div class="grid grid-cols-3 border-t border-neutral-200">
 
-                        <!-- Delivery -->
-                        <div
-                                class="flex flex-col items-center px-2 py-4 text-center">
+                        <div class="flex flex-col items-center px-2 py-4 text-center">
 
                             <Truck
                                     :size="17"
                                     :stroke-width="1.4"
-                                    class="mb-2"
-                            />
+                                    class="mb-2"/>
 
                             <p class="text-[9px] font-medium">
                                 Быстрая доставка
@@ -409,15 +391,13 @@ const removePromo = () => {
 
                         </div>
 
-                        <!-- Return -->
                         <div
                                 class="flex flex-col items-center border-x border-neutral-200 px-2 py-4 text-center">
 
                             <RefreshCcw
                                     :size="17"
                                     :stroke-width="1.4"
-                                    class="mb-2"
-                            />
+                                    class="mb-2"/>
 
                             <p class="text-[9px] font-medium">
                                 Лёгкий возврат
@@ -430,15 +410,13 @@ const removePromo = () => {
 
                         </div>
 
-                        <!-- Payment -->
                         <div
                                 class="flex flex-col items-center px-2 py-4 text-center">
 
                             <ShieldCheck
                                     :size="17"
                                     :stroke-width="1.4"
-                                    class="mb-2"
-                            />
+                                    class="mb-2"/>
 
                             <p class="text-[9px] font-medium">
                                 Безопасная оплата
