@@ -1,19 +1,23 @@
 <script setup>
-import {computed} from 'vue'
+import {computed, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {
     MapPin,
     Truck,
 } from 'lucide-vue-next'
 
+import {supabase} from "../lib/supabase.js";
 import {useCartStore} from '../stores/cart'
 import {useAddressesStore} from '../stores/addresses'
+import {createOrder} from '../services/orders.js'
 import {formatPrice} from '../utils/formatPrice'
 
 const router = useRouter()
 
 const cartStore = useCartStore()
 const addressesStore = useAddressesStore()
+const creatingOrder = ref(false)
+const orderError = ref(null)
 
 const deliveryMethods = [
     {
@@ -49,28 +53,92 @@ const totalPrice = computed(() => {
     return cartStore.totalPrice + deliveryPrice.value
 })
 
-
 const goToCart = () => {
     router.push('/cart')
 }
-
 
 const goToDelivery = () => {
     router.push('/delivery')
 }
 
-
 const goToCheckout = () => {
     router.push('/checkout')
 }
 
+const handleCreateOrder = async () => {
+    if (creatingOrder.value) {
+        return
+    }
 
-const createOrder = () => {
+    orderError.value = null
 
-    console.log('Create order')
+    if (!cartStore.items.length) {
+        orderError.value = 'Корзина пуста.'
+        return
+    }
+
+    if (!addressesStore.selectedAddress) {
+        orderError.value = 'Выберите адрес доставки.'
+        return
+    }
+
+    try {
+        creatingOrder.value = true
+
+        // Получаем текущего авторизованного пользователя
+        const {
+            data: { user },
+            error: userError,
+        } = await supabase.auth.getUser()
+
+        if (userError) {
+            throw userError
+        }
+
+        if (!user) {
+            orderError.value =
+                'Для оформления заказа необходимо войти в аккаунт.'
+
+            return
+        }
+
+        const order = await createOrder({
+            userId: user.id,
+
+            cartItems: cartStore.items,
+
+            address: addressesStore.selectedAddress,
+
+            deliveryMethod: selectedDeliveryId,
+
+            deliveryPrice:
+                deliveryMethod.value?.price || 0,
+
+            total:
+                cartStore.totalPrice +
+                (deliveryMethod.value?.price || 0),
+        })
+
+        // Заказ успешно создан
+        cartStore.clearCart()
+
+        // Переходим на страницу успешного заказа
+        router.push({
+            name: 'order-success',
+            query: {
+                order: order.id,
+            },
+        })
+    } catch (error) {
+        console.error('Create order error:', error)
+
+        orderError.value =
+            'Не удалось оформить заказ. Попробуйте ещё раз.'
+    } finally {
+        creatingOrder.value = false
+    }
 }
 </script>
-
 
 <template>
     <main class="min-h-screen bg-white">
@@ -358,17 +426,17 @@ const createOrder = () => {
 
                         </div>
 
+                        <p v-if="orderError"
+                            class="mb-4 text-sm text-red-600">
+                            {{ orderError }}
+                        </p>
+
                         <button
-                                type="button"
-                                class="mt-6 flex w-full cursor-pointer items-center justify-center bg-black px-6 py-4
-                                text-sm text-white transition hover:bg-neutral-800"
-                                :disabled="!cartStore.items.length || !addressesStore.selectedAddress"
-                                :class="{'cursor-not-allowed bg-neutral-300 hover:bg-neutral-300': !cartStore.items.length
-                                || !addressesStore.selectedAddress}"
-                                @click="createOrder">
-
-                            Оформить заказ
-
+                            type="button"
+                            @click="handleCreateOrder"
+                            :disabled="creatingOrder"
+                            class="w-full cursor-pointer bg-neutral-950 px-6 py-4 text-sm uppercase tracking-wider text-white transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50">
+                            {{ creatingOrder ? 'Оформление...' : 'Оформить заказ' }}
                         </button>
 
                         <p class="mt-4 text-center text-[10px] leading-4 text-neutral-400">

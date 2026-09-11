@@ -12,6 +12,7 @@ import Favorites from "../pages/Favorites.vue";
 import Checkout from "../pages/Checkout.vue";
 import Delivery from "../pages/Delivery.vue";
 import OrderConfirmation from "../pages/OrderConfirmation.vue";
+import OrderSuccess from "../pages/OrderSuccess.vue";
 
 const routes = [
     {
@@ -76,6 +77,11 @@ const routes = [
         path: '/order-confirmation',
         name: 'order-confirmation',
         component: OrderConfirmation,
+    },
+    {
+        path: '/order-success',
+        name: 'order-success',
+        component: OrderSuccess,
     },
 ]
 
