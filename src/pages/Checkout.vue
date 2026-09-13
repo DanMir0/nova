@@ -5,7 +5,14 @@ import {
     Plus,
     X,
 } from 'lucide-vue-next'
-
+import {
+    validateCity,
+    validateAddress,
+    validateAddressTitle,
+    validatePhone,
+    validateRecipient
+} from "../utils/validation.js";
+import {formatPhone} from "../utils/formatters.js";
 import {useAddressesStore} from '../stores/addresses'
 
 const addressesStore = useAddressesStore()
@@ -14,6 +21,14 @@ const showForm = ref(false)
 const editingAddressId = ref(null)
 
 const form = ref({
+    title: '',
+    city: '',
+    address: '',
+    recipient: '',
+    phone: '',
+})
+
+const errors = ref({
     title: '',
     city: '',
     address: '',
@@ -33,12 +48,10 @@ const resetForm = () => {
     editingAddressId.value = null
 }
 
-
 const openAddForm = () => {
     resetForm()
     showForm.value = true
 }
-
 
 const openEditForm = (address) => {
 
@@ -54,14 +67,19 @@ const openEditForm = (address) => {
     showForm.value = true
 }
 
+const handlePhoneInput = () => {
+    form.value.phone = formatPhone(form.value.phone)
+}
 
 const closeForm = () => {
     showForm.value = false
     resetForm()
 }
 
-
 const saveAddress = () => {
+    if (!validateForm()) {
+        return
+    }
 
     if (
         !form.value.title.trim() ||
@@ -73,7 +91,6 @@ const saveAddress = () => {
         return
     }
 
-
     if (editingAddressId.value) {
 
         addressesStore.updateAddress(
@@ -84,29 +101,35 @@ const saveAddress = () => {
         addressesStore.addAddress({...form.value,})
     }
 
-
     closeForm()
 }
-
 
 const deleteAddress = (addressId) => {
 
     addressesStore.removeAddress(addressId)
 }
 
-
 const selectAddress = (addressId) => {
 
     addressesStore.selectAddress(addressId)
 }
 
+const validateForm = () => {
+    errors.value = {
+        title: validateAddressTitle(form.value.title),
+        city: validateCity(form.value.city),
+        address: validateAddress(form.value.address),
+        recipient: validateRecipient(form.value.recipient),
+        phone: validatePhone(form.value.phone),
+    }
+
+    return !Object.values(errors.value).some(Boolean)
+}
 
 const makeDefault = (addressId) => {
-
     addressesStore.setDefaultAddress(addressId)
 }
 </script>
-
 
 <template>
     <main class="min-h-screen bg-white">
@@ -192,8 +215,8 @@ const makeDefault = (addressId) => {
                     </button>
 
                     <RouterLink
-                        to="/delivery"
-                        class="mt-8 flex h-11 w-fit cursor-pointer items-center justify-center bg-black px-8 text-xs text-white transition hover:bg-neutral-800">
+                            to="/delivery"
+                            class="mt-8 flex h-11 w-fit cursor-pointer items-center justify-center bg-black px-8 text-xs text-white transition hover:bg-neutral-800">
 
                         Продолжить
 
@@ -360,6 +383,7 @@ const makeDefault = (addressId) => {
                                         placeholder="Дом"
                                         class="h-11 w-full border border-neutral-200 px-4 text-sm outline-none
                                         transition placeholder:text-neutral-400 focus:border-black"/>
+                                <p v-if="errors.title" class="mt-1.5 text-xs text-red-500">{{ errors.title}}</p>
 
                             </div>
 
@@ -375,6 +399,7 @@ const makeDefault = (addressId) => {
                                         placeholder="Москва"
                                         class="h-11 w-full border border-neutral-200 px-4 text-sm outline-none
                                         transition placeholder:text-neutral-400 focus:border-black"/>
+                                <p v-if="errors.city" class="mt-1.5 text-xs text-red-500">{{ errors.city}}</p>
 
                             </div>
 
@@ -391,6 +416,7 @@ const makeDefault = (addressId) => {
                                         placeholder="ул. Петровка, 17, кв. 5"
                                         class="h-11 w-full border border-neutral-200 px-4 text-sm outline-none
                                         transition placeholder:text-neutral-400 focus:border-black"/>
+                                <p v-if="errors.address" class="mt-1.5 text-xs text-red-500">{{ errors.address}}</p>
 
                             </div>
 
@@ -406,6 +432,7 @@ const makeDefault = (addressId) => {
                                         placeholder="Имя и фамилия"
                                         class="h-11 w-full border border-neutral-200 px-4 text-sm outline-none
                                         transition placeholder:text-neutral-400 focus:border-black"/>
+                                <p v-if="errors.recipient" class="mt-1.5 text-xs text-red-500">{{ errors.recipient}}</p>
 
                             </div>
 
@@ -417,9 +444,15 @@ const makeDefault = (addressId) => {
                                 <input
                                         v-model="form.phone"
                                         type="tel"
+                                        inputmode="numeric"
                                         placeholder="+7 999 123-45-67"
-                                        class="h-11 w-full border border-neutral-200 px-4 text-sm outline-none
-                                        transition placeholder:text-neutral-400 focus:border-black"/>
+                                        maxlength="18"
+                                        class="h-11 w-full border px-4 text-sm outline-none transition
+                                    placeholder:text-neutral-400 focus:border-black"
+                                        :class="errors.phone ? 'border-red-400' : 'border-neutral-200'"
+                                        @input="handlePhoneInput"/>
+
+                                <p v-if="errors.phone" class="mt-1.5 text-xs text-red-500">{{ errors.phone}}</p>
 
                             </div>
 
