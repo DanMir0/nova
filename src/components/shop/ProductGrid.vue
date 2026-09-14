@@ -2,36 +2,26 @@
 import ProductCard from './ProductCard.vue'
 
 defineProps({
-  products: {
-    type: Array,
-    default: () => [],
-  },
+    products: {
+        type: Array,
+        required: true,
+    },
+
+    collectionName: {
+        type: String,
+        default: '',
+    },
 })
-
-const emit = defineEmits([
-  'login',
-])
 </script>
+
 <template>
-  <div
-      v-if="products.length"
-      class="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 xl:grid-cols-4">
-    <ProductCard
-        v-for="product in products"
-        :key="product.id"
-        :product="product"
-        @login="emit('login')"/>
-  </div>
+    <div v-if="products.length"
+         class="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 xl:grid-cols-4">
 
-  <div
-      v-else
-      class="py-24 text-center">
-    <h2 class="text-xl font-normal">
-      Товары не найдены
-    </h2>
-
-    <p class="mt-2 text-sm text-neutral-500">
-      Попробуйте изменить параметры фильтрации.
-    </p>
-  </div>
+        <ProductCard
+            v-for="product in products"
+            :key="product.id"
+            :product="product"
+            :collection-name="collectionName"/>
+    </div>
 </template>

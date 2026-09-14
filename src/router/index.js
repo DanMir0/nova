@@ -13,6 +13,7 @@ import Checkout from "../pages/Checkout.vue";
 import Delivery from "../pages/Delivery.vue";
 import OrderConfirmation from "../pages/OrderConfirmation.vue";
 import OrderSuccess from "../pages/OrderSuccess.vue";
+import Collection from "../pages/Collection.vue";
 
 const routes = [
     {
@@ -29,6 +30,11 @@ const routes = [
         path: '/collections',
         name: 'collections',
         component: Collections,
+    },
+    {
+        path: '/collections/:collection',
+        name: 'collection',
+        component: Collection,
     },
     {
         path: '/cart',

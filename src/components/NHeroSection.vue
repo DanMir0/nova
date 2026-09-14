@@ -13,7 +13,7 @@ const slides = [
     title: 'Весна / Лето 2026',
     description: 'Лёгкость, стиль и комфорт в каждой детали.',
     buttonText: 'Смотреть коллекцию',
-    buttonLink: '/collections',
+    buttonLink: '/collections/spring-summer',
   },
 
   {
@@ -22,7 +22,7 @@ const slides = [
     title: 'Осень / Зима 2026',
     description: 'Новые материалы, силуэты и характер.',
     buttonText: 'Смотреть коллекцию',
-    buttonLink: '/collections',
+    buttonLink: '/collections/autumn-winter',
   },
 
   {

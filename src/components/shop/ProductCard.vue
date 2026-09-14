@@ -1,127 +1,137 @@
 <script setup>
 import { Heart } from 'lucide-vue-next'
-import { formatPrice } from '../../utils/formatPrice.js'
-import { useFavoritesStore } from '../../stores/favorites'
-import { useAuthStore } from '../../stores/auth'
+import { RouterLink } from 'vue-router'
 
-const props = defineProps({
-  product: {
-    type: Object,
-    required: true,
-  },
+import { formatPrice } from '../../utils/formatPrice'
+
+defineProps({
+    product: {
+        type: Object,
+        required: true,
+    },
+
+    collectionName: {
+        type: String,
+        default: '',
+    },
 })
 
-const emit = defineEmits([
-  'login',
-])
+const getProductImage = (product) => {
+    if (product.images?.length) {
+        return product.images[0]
+    }
 
-const favoritesStore = useFavoritesStore()
-const authStore = useAuthStore()
+    return product.image_url || ''
+}
 
-const toggleFavorite = async (event) => {
-  event.preventDefault()
-  event.stopPropagation()
+const colorMap = {
+    beige: '#d8d0c4',
+    brown: '#8b7967',
+    black: '#111111',
+    white: '#eeeeee',
+    yellow: '#FFFF00',
+    grey: '#9b9b9b',
+    blue: '#4f6d8a',
+    green: '#8da37b',
+}
 
-  if (!authStore.user) {
-    emit('login')
-    return
-  }
+const getProductColors = (product) => {
+    if (Array.isArray(product.colors)) {
+        return product.colors
+    }
 
-  await favoritesStore.toggleFavorite(props.product.id)
+    if (product.color) {
+        return [product.color]
+    }
+
+    return []
+}
+
+const getColorHex = (color) => {
+    return colorMap[color] || '#e5e5e5'
 }
 </script>
 
 <template>
-  <RouterLink
-      :to="`/shop/${product.id}`"
-      class="group block">
+    <article class="group min-w-0">
 
-    <!-- Image -->
-    <div
-        class="relative aspect-[3/4] overflow-hidden bg-neutral-100">
+        <!-- IMAGE -->
+        <RouterLink
+            :to="`/shop/${product.id}`"
+            class="relative block overflow-hidden bg-neutral-100">
+            <div class="aspect-[3/4]">
+                <img
+                    :src="getProductImage(product)"
+                    :alt="product.name"
+                    class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"/>
+            </div>
 
-      <img
-          v-if="product.images?.length"
-          :src="product.images[0]"
-          :alt="product.name"
-          class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"/>
+            <!-- COLLECTION / NEW -->
+            <span
+                v-if="collectionName"
+                class="absolute left-2 top-2 bg-[#e6efd8] px-2 py-1 text-[10px] text-neutral-700">
+                {{ collectionName }}
+            </span>
 
-      <img
-          v-else-if="product.image_url"
-          :src="product.image_url"
-          :alt="product.name"
-          class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"/>
+            <span
+                v-else-if="product.is_new"
+                class="absolute left-2 top-2 bg-[#e6efd8] px-2 py-1 text-[10px] text-neutral-700">
+                Новинка
+            </span>
 
-      <div
-          v-else
-          class="flex h-full items-center justify-center text-sm text-neutral-400">
-        Нет изображения
-      </div>
+            <!-- SALE -->
+            <span
+                v-if="product.is_sale"
+                class="absolute left-2 top-9 bg-rose-500 px-2 py-1 text-[10px] text-white">
+                Sale
+            </span>
 
-      <!-- Favorite -->
-      <button
-          type="button"
-          aria-label="Добавить в избранное"
-          class="absolute right-3 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-white/90 transition hover:bg-white"
-          @click="toggleFavorite">
+            <!-- FAVORITE -->
+            <button
+                type="button"
+                class="absolute right-2 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/90 transition hover:bg-white"
+                aria-label="Добавить в избранное"
+                @click.prevent.stop>
+                <Heart :size="16" />
+            </button>
+        </RouterLink>
 
-        <Heart
-            :size="18"
-            :stroke-width="1.5"
-            :fill="favoritesStore.isFavorite(product.id) ? 'currentColor' : 'none'"
-            :class="
-            favoritesStore.isFavorite(product.id) ? 'text-black' : 'text-black'"/>
+        <!-- INFO -->
+        <div class="mt-3">
 
-      </button>
+            <RouterLink
+                :to="`/shop/${product.id}`"
+                class="block text-xs font-medium leading-5 transition hover:text-neutral-500">
+                {{ product.name }}
+            </RouterLink>
 
-      <!-- Sale -->
-      <span
-          v-if="product.is_sale"
-          class="absolute left-3 top-3 bg-black px-2 py-1 text-[10px] uppercase tracking-wider text-white">
-        Sale
-      </span>
+            <div class="mt-1 text-xs text-neutral-500">
+                Nova
+            </div>
 
-      <!-- New -->
-      <span
-          v-else-if="product.is_new"
-          class="absolute left-3 top-3 bg-white px-2 py-1 text-[10px] uppercase tracking-wider text-black">
-        New
-      </span>
+            <div class="mt-2 flex items-center gap-2">
+                <span :class="product.old_price ? 'font-medium text-rose-500' : 'font-medium text-black'">
+                    {{ formatPrice(product.price) }}
+                </span>
 
-    </div>
+                <span
+                    v-if="product.old_price"
+                    class="text-xs text-neutral-400 line-through">
+                    {{ formatPrice(product.old_price) }}
+                </span>
+            </div>
 
-    <!-- Info -->
-    <div class="pt-4">
+            <!-- COLORS -->
+            <div
+                v-if="getProductColors(product).length"
+                class="mt-3 flex gap-1.5">
+                <span
+                    v-for="color in getProductColors(product)"
+                    :key="color"
+                    class="h-3.5 w-3.5 rounded-full border border-neutral-200"
+                    :style="{ backgroundColor: getColorHex(color), }"/>
+            </div>
 
-      <h2 class="text-sm font-normal">
-        {{ product.name }}
-      </h2>
-
-      <div class="mt-2 text-sm">
-        {{ formatPrice(product.price) }}
-      </div>
-
-      <!-- Colors -->
-      <div
-          v-if="product.colors?.length"
-          class="mt-3 flex items-center gap-1.5">
-
-        <span
-            v-for="color in product.colors"
-            :key="color"
-            class="h-3.5 w-3.5 rounded-full border border-neutral-300"
-            :class="{
-            'bg-black': color === 'black',
-            'bg-white': color === 'white',
-            'bg-[#d8d0c4]': color === 'beige',
-            'bg-[#8b7967]': color === 'brown',
-            'bg-[#9b9b9b]': color === 'grey',
-            'bg-[#f2c06b]': color === 'yellow',
-            'bg-[#4f6d8a]': color === 'blue',}"/>
-
-      </div>
-
-    </div>
-
-  </RouterLink>
+        </div>
+    </article>
 </template>

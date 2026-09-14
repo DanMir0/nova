@@ -5,6 +5,7 @@ import { getProducts } from '../services/productsService'
 
 export const useProductsStore = defineStore('products', () => {
     const products = ref([])
+    const collection = ref('')
 
     const loading = ref(false)
     const error = ref(null)
@@ -24,6 +25,7 @@ export const useProductsStore = defineStore('products', () => {
     })
 
     const filters = ref(defaultFilters())
+    const setCollection = (value) => { collection.value = value || '' }
 
     const fetchProducts = async () => {
         try {
@@ -86,5 +88,6 @@ export const useProductsStore = defineStore('products', () => {
         fetchProducts,
         setFilter,
         resetFilters,
+        setCollection,
     }
 })
