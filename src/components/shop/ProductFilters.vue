@@ -1,4 +1,5 @@
 <script setup>
+import {ref} from 'vue'
 import { ChevronUp } from 'lucide-vue-next'
 
 defineProps({
@@ -32,10 +33,26 @@ defineEmits([
     'update:minPrice',
     'update:maxPrice',
     'apply:price',
+    'reset:price',
     'toggle:new',
     'toggle:sale',
-    'reset',
+    'reset:filter',
 ])
+
+const openSections = ref({
+    gender: true,
+    collection: true,
+    category: true,
+    size: true,
+    color: true,
+    price: true,
+    status: true,
+})
+
+const toggleSection = (section) => {
+    openSections.value[section] =
+        !openSections.value[section]
+}
 
 const categories = [
     {
@@ -165,15 +182,21 @@ const colors = [
         <section
             v-if="showGender"
             class="border-b border-neutral-200 pb-5">
-            <div class="mb-4 flex items-center justify-between">
+            <button
+                type="button"
+                class="mb-4 flex w-full cursor-pointer items-center justify-between text-left"
+                @click="toggleSection('gender')">
                 <h2 class="font-medium">
                     Для кого
                 </h2>
 
-                <ChevronUp :size="15" />
-            </div>
+                <ChevronUp
+                    :size="15"
+                    class="transition-transform"
+                    :class="{'rotate-180': !openSections.gender,}"/>
+            </button>
 
-            <div class="space-y-2">
+            <div v-if="openSections.gender" class="space-y-2">
                 <button
                     v-for="gender in genders"
                     :key="gender.value"
@@ -192,15 +215,21 @@ const colors = [
         <section
             v-if="showCollection"
             class="border-b border-neutral-200 py-5">
-            <div class="mb-4 flex items-center justify-between">
+            <button
+                type="button"
+                class="mb-4 flex w-full cursor-pointer items-center justify-between text-left"
+                @click="toggleSection('collection')">
                 <h2 class="font-medium">
                     Коллекция
                 </h2>
 
-                <ChevronUp :size="15" />
-            </div>
+                <ChevronUp
+                    :size="15"
+                    class="transition-transform"
+                    :class="{'rotate-180': !openSections.collection,}"/>
+            </button>
 
-            <div class="space-y-2">
+            <div v-if="openSections.collection" class="space-y-2">
                 <button
                     v-for="item in collections"
                     :key="item.value"
@@ -217,15 +246,21 @@ const colors = [
 
         <!-- CATEGORY -->
         <section class="border-b border-neutral-200 py-5">
-            <div class="mb-4 flex items-center justify-between">
+            <button
+                type="button"
+                class="mb-4 flex w-full cursor-pointer items-center justify-between text-left"
+                @click="toggleSection('category')">
                 <h2 class="font-medium">
                     Категории
                 </h2>
 
-                <ChevronUp :size="15" />
-            </div>
+                <ChevronUp
+                    :size="15"
+                    class="transition-transform"
+                    :class="{'rotate-180': !openSections.category,}"/>
+            </button>
 
-            <div class="space-y-2">
+            <div v-if="openSections.category" class="space-y-2">
                 <button
                     v-for="category in categories"
                     :key="category.value"
@@ -244,15 +279,22 @@ const colors = [
 
         <!-- SIZE -->
         <section class="border-b border-neutral-200 py-5">
-            <div class="mb-4 flex items-center justify-between">
+            <button
+                type="button"
+                class="mb-4 flex w-full cursor-pointer items-center justify-between text-left"
+                @click="toggleSection('size')">
                 <h2 class="font-medium">
                     Размер
                 </h2>
 
-                <ChevronUp :size="15" />
-            </div>
+                <ChevronUp
+                    :size="15"
+                    class="transition-transform"
+                    :class="{'rotate-180': !openSections.size,}"
+                />
+            </button>
 
-            <div class="flex flex-wrap gap-2">
+            <div v-if="openSections.size" class="flex flex-wrap gap-2">
                 <button
                     v-for="size in sizes"
                     :key="size"
@@ -268,15 +310,22 @@ const colors = [
 
         <!-- COLOR -->
         <section class="border-b border-neutral-200 py-5">
-            <div class="mb-4 flex items-center justify-between">
+            <button
+                type="button"
+                class="mb-4 flex w-full cursor-pointer items-center justify-between text-left"
+                @click="toggleSection('color')">
                 <h2 class="font-medium">
                     Цвет
                 </h2>
 
-                <ChevronUp :size="15" />
-            </div>
+                <ChevronUp
+                    :size="15"
+                    class="transition-transform"
+                    :class="{'rotate-180': !openSections.color,}"
+                />
+            </button>
 
-            <div class="flex max-w-[160px] flex-wrap gap-3">
+            <div v-if="openSections.color" class="flex max-w-[160px] flex-wrap gap-3">
                 <button
                     v-for="color in colors"
                     :key="color.value"
@@ -293,41 +342,65 @@ const colors = [
         <!-- PRICE -->
         <section class="border-b border-neutral-200 py-5">
             <div class="mb-4 flex items-center justify-between">
-                <h2 class="font-medium">
-                    Цена
-                </h2>
+                <button
+                    type="button"
+                    class="flex cursor-pointer items-center gap-2 text-left"
+                    @click="toggleSection('price')">
+                    <h2 class="font-medium">
+                        Цена
+                    </h2>
 
-                <ChevronUp :size="15" />
+                    <ChevronUp
+                        :size="15"
+                        class="transition-transform"
+                        :class="{'rotate-180': !openSections.price,}"/>
+                </button>
+
+                <!-- Сбросить только цену -->
+                <button v-if="filters.minPrice !== null || filters.maxPrice !== null"
+                    type="button"
+                    class="cursor-pointer text-lg leading-none text-neutral-400 transition hover:text-black"
+                    title="Сбросить цену"
+                    aria-label="Сбросить цену"
+                    @click.stop="console.log('price'); $emit('reset:price')">
+                    ×
+                </button>
             </div>
 
-            <div class="flex items-center gap-2">
-                <input
-                    :value="filters.minPrice ?? ''"
-                    type="number"
-                    min="0"
-                    placeholder="от"
-                    class="h-9 w-full border border-neutral-200 px-3 text-xs outline-none transition focus:border-black"
-                    @input="
-                        $emit('update:minPrice', $event.target.value ? Number($event.target.value) : null)"/>
-                <span class="text-neutral-400">
-                    —
-                </span>
+            <div v-if="openSections.price">
+                <div class="flex items-center gap-2">
+                    <input
+                        :value="filters.minPrice ?? ''"
+                        type="number"
+                        min="0"
+                        placeholder="от"
+                        class="h-9 w-full border border-neutral-200 px-3 text-xs outline-none transition focus:border-black"
+                        @input="
+                            $emit(
+                        'update:minPrice',$event.target.value ? Number($event.target.value) : null)"/>
 
-                <input
-                    :value="filters.maxPrice ?? ''"
-                    type="number"
-                    min="0"
-                    placeholder="до"
-                    class="h-9 w-full border border-neutral-200 px-3 text-xs outline-none transition focus:border-black"
-                    @input="$emit('update:maxPrice', $event.target.value ? Number($event.target.value) : null) "/>
+                    <span class="text-neutral-400">
+                        —
+                    </span>
+
+                    <input
+                        :value="filters.maxPrice ?? ''"
+                        type="number"
+                        min="0"
+                        placeholder="до"
+                        class="h-9 w-full border border-neutral-200 px-3 text-xs outline-none transition focus:border-black"
+                        @input="
+                            $emit('update:maxPrice', $event.target.value ? Number($event.target.value) : null)"/>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="mt-3 cursor-pointer text-xs underline underline-offset-4 transition hover:text-black"
+                    @click="$emit('apply:price')">
+                    Применить
+                </button>
             </div>
-
-            <button
-                type="button"
-                class="mt-3 cursor-pointer text-xs underline underline-offset-4 transition hover:text-black"
-                @click="$emit('apply:price')">
-                Применить
-            </button>
         </section>
 
         <!-- NEW / SALE -->
@@ -358,7 +431,7 @@ const colors = [
             v-if="hasActiveFilters"
             type="button"
             class="mt-5 cursor-pointer text-xs text-neutral-500 underline-offset-4 transition hover:text-black hover:underline"
-            @click="$emit('reset')">
+            @click="$emit('reset:filter')">
             Сбросить фильтры
         </button>
 

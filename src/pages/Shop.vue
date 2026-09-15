@@ -15,6 +15,9 @@ const router = useRouter()
 const productsStore = useProductsStore()
 
 const mobileFiltersOpen = ref(false)
+const isNewPage = computed(() => {
+    return route.query.new === 'true'
+})
 
 const categoryLabels = {
     't-shirts': 'Футболки',
@@ -31,16 +34,16 @@ const categoryLabels = {
 }
 
 const pageTitle = computed(() => {
+    if (route.query.new === 'true') {
+        return 'Новинки'
+    }
+
     if (route.query.gender === 'women') {
         return 'Женщинам'
     }
 
     if (route.query.gender === 'men') {
         return 'Мужчинам'
-    }
-
-    if (route.query.new === 'true') {
-        return 'Новинки'
     }
 
     if (route.query.sale === 'true') {
@@ -202,6 +205,23 @@ const applyPrice = () => {
     })
 }
 
+const resetPrice = () => {
+    productsStore.setFilter('minPrice', null)
+    productsStore.setFilter('maxPrice', null)
+    console.log('clicj')
+    const query = {
+        ...route.query,
+    }
+
+    delete query.minPrice
+    delete query.maxPrice
+
+    router.push({
+        path: '/shop',
+        query,
+    })
+}
+
 const toggleNew = () => {
     updateQuery(
         'new',
@@ -225,6 +245,8 @@ const changeSort = (value) => {
 }
 
 const resetFilters = () => {
+    productsStore.resetFilters()
+
     router.push({
         path: '/shop',
     })
@@ -288,6 +310,48 @@ onMounted(() => {
                 </template>
             </nav>
 
+            <section
+                v-if="isNewPage"
+                class="relative mt-5 h-[230px] overflow-hidden bg-neutral-100 sm:h-[260px] lg:h-[270px]">
+
+                <img
+                    src="/images/newProduct.jpg"
+                    alt="Новинки Nova"
+                    class="absolute inset-0 h-full w-full object-cover"/>
+
+                <div class="absolute inset-0 bg-white/35" />
+
+                <div class="relative z-10 flex h-full max-w-xl flex-col justify-center px-6 sm:px-10">
+
+                    <nav
+                        class="mb-4 flex items-center gap-2 text-xs text-neutral-500"
+                        aria-label="Breadcrumb">
+                        <RouterLink
+                            to="/"
+                            class="hover:text-black">
+                            Главная
+                        </RouterLink>
+
+                        <span>/</span>
+
+                        <span class="text-neutral-700">
+                            Новинки
+                        </span>
+                    </nav>
+
+                    <!-- Title -->
+                    <h1 class="text-3xl font-normal tracking-tight sm:text-4xl">
+                        Новинки
+                    </h1>
+
+                    <!-- Description -->
+                    <p class="mt-3 max-w-md text-sm leading-5 text-neutral-600">
+                        Новые модели Nova — актуальные силуэты,
+                        современные материалы и вещи для нового сезона.
+                    </p>
+                </div>
+            </section>
+
             <!-- Header -->
             <header class="mb-8">
                 <h1 class="text-3xl font-normal tracking-tight sm:text-4xl">
@@ -327,7 +391,8 @@ onMounted(() => {
                         @apply:price="applyPrice"
                         @toggle:new="toggleNew"
                         @toggle:sale="toggleSale"
-                        @reset="resetFilters"/>
+                        @reset:filter="resetFilters"
+                        @reset:price="resetPrice"/>
             </div>
 
             <!-- Catalog -->
@@ -348,7 +413,8 @@ onMounted(() => {
                             @apply:price="applyPrice"
                             @toggle:new="toggleNew"
                             @toggle:sale="toggleSale"
-                            @reset="resetFilters"/>
+                            @reset:filter="resetFilters"
+                            @reset:price="resetPrice"/>
 
                 </aside>
 
