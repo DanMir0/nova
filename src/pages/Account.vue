@@ -8,7 +8,9 @@ import {
     LogOut,
 } from 'lucide-vue-next'
 import OrderHistory from '../components/account/OrderHistory.vue'
-import {getCurrentUser, updateProfile, signOut} from "../services/authService.js";
+import {getCurrentUser, updateProfile, refreshCurrentUser, signOut} from "../services/authService.js";
+import { formatPhone } from '../utils/formatters'
+import router from "../router/index.js";
 
 const activeSection = ref('profile')
 
@@ -65,7 +67,7 @@ const loadProfile = async () => {
         lastName.value = user.user_metadata?.last_name || ''
 
         email.value = user.email || ''
-        phone.value = user.phone || ''
+        phone.value = formatPhone(user.phone || '')
     } catch (error) {
         console.error('Ошибка загрузки профиля:', error)
         errorMessage.value = 'Не удалось загрузить данные профиля'
@@ -84,17 +86,39 @@ const saveProfile = async () => {
             firstName: firstName.value,
             lastName: lastName.value,
             email: email.value,
-            phone: phone.value,
         })
+
+        const user = await refreshCurrentUser()
+
+        if (user) {
+            firstName.value = user.user_metadata?.first_name || ''
+            lastName.value = user.user_metadata?.last_name || ''
+            email.value = user.email || ''
+            phone.value = formatPhone(user.phone || '')
+        }
 
         successMessage.value = 'Изменения сохранены'
     } catch (error) {
         console.error('Ошибка сохранения профиля:', error)
+
         errorMessage.value =
             error.message || 'Не удалось сохранить изменения'
     } finally {
         saving.value = false
     }
+}
+
+const handleSignOut = async () => {
+    try {
+        await signOut()
+        router.push('/')
+    } catch (e) {
+        errorMessage.value = 'Возникла ошибка. Попробуйте позже.'
+    }
+}
+
+const handlePhoneInput = (event) => {
+    phone.value = formatPhone(event.target.value)
 }
 
 onMounted(() => {
@@ -133,7 +157,8 @@ onMounted(() => {
 
                 <button
                     type="button"
-                    class="mt-auto flex cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-sm text-neutral-500 transition hover:text-black">
+                    class="mt-auto flex cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-sm text-neutral-500 transition hover:text-black"
+                    @click="handleSignOut">
                     <LogOut
                         :size="18"
                         :stroke-width="1.5"/>
@@ -194,24 +219,28 @@ onMounted(() => {
                                 </label>
 
                                 <input
-                                    v-model="phone"
+                                    :value="phone"
                                     type="tel"
+                                    inputmode="numeric"
+                                    autocomplete="tel"
+                                    placeholder="+7 (___) ___-__-__"
                                     class="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none transition focus:border-black"
-                                    placeholder="Введите телефон"/>
+                                    @input="handlePhoneInput"/>
                             </div>
 
-                            <p
-                                v-if="successMessage"
-                                class="mt-4 text-sm text-green-600">
-                                {{ successMessage }}
-                            </p>
-
-                            <p
-                                v-if="errorMessage"
-                                class="mt-4 text-sm text-red-600">
-                                {{ errorMessage }}
-                            </p>
                         </div>
+
+                        <p
+                            v-if="successMessage"
+                            class="mt-4 text-sm text-green-600">
+                            {{ successMessage }}
+                        </p>
+
+                        <p
+                            v-if="errorMessage"
+                            class="mt-4 text-sm text-red-600">
+                            {{ errorMessage }}
+                        </p>
 
                         <button
                             type="button"
