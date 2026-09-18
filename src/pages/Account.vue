@@ -14,7 +14,7 @@ import {
     getProfile,
     signOut
 } from "../services/authService.js";
-import {formatPhone, normalizePhone} from '../utils/formatters'
+import {AsYouType, parsePhoneNumberFromString,} from 'libphonenumber-js'
 import router from "../router/index.js";
 
 const activeSection = ref('profile')
@@ -52,6 +52,20 @@ const menuItems = [
     },
 ]
 
+const countries = [
+    { code: 'RU', dialCode: '+7', name: 'Россия' },
+    { code: 'KZ', dialCode: '+7', name: 'Казахстан' },
+    { code: 'BY', dialCode: '+375', name: 'Беларусь' },
+    { code: 'DE', dialCode: '+49', name: 'Германия' },
+    { code: 'FR', dialCode: '+33', name: 'Франция' },
+    { code: 'IT', dialCode: '+39', name: 'Италия' },
+    { code: 'GB', dialCode: '+44', name: 'Великобритания' },
+    { code: 'US', dialCode: '+1', name: 'США' },
+    { code: 'CH', dialCode: '+41', name: 'Швейцария' },
+]
+
+const selectedCountry = ref(countries[0])
+
 const setSection = (section) => {
     activeSection.value = section
 }
@@ -75,7 +89,13 @@ const loadProfile = async () => {
 
         email.value = profile?.email || user.email || ''
 
-        phone.value = formatPhone(profile?.phone || '')
+        const savedCountry = countries.find((country) => country.code === profile?.phone_country)
+
+        if (savedCountry) {
+            selectedCountry.value = savedCountry
+        }
+
+        loadPhone(profile?.phone)
     } catch (error) {
         console.error('Ошибка загрузки профиля:', error)
 
@@ -99,10 +119,10 @@ const saveProfile = async () => {
             return
         }
 
-        const normalizedPhone = normalizePhone(phone.value)
+        const normalizedPhone = getNormalizedPhone()
 
-        if (normalizedPhone && normalizedPhone.length !== 12) {
-            errorMessage.value = 'Введите полный номер телефона'
+        if (normalizedPhone === null) {
+            errorMessage.value = 'Введите корректный номер телефона'
             return
         }
 
@@ -112,6 +132,7 @@ const saveProfile = async () => {
             lastName: lastName.value,
             email: email.value,
             phone: normalizedPhone,
+            phone_country: selectedCountry.value.code,
         })
 
         successMessage.value = 'Изменения сохранены'
@@ -134,8 +155,51 @@ const handleSignOut = async () => {
     }
 }
 
+const handleCountryChange = () => {
+    phone.value = ''
+}
+
 const handlePhoneInput = (event) => {
-    phone.value = formatPhone(event.target.value)
+    const formatter = new AsYouType(selectedCountry.value.code)
+
+    phone.value = formatter.input(event.target.value)
+}
+
+const getNormalizedPhone = () => {
+    if (!phone.value.trim()) {
+        return ''
+    }
+
+    const phoneNumber = parsePhoneNumberFromString(
+        phone.value,
+        selectedCountry.value.code
+    )
+
+    if (!phoneNumber || !phoneNumber.isValid()) {
+        return null
+    }
+
+    return phoneNumber.number
+}
+
+const loadPhone = (savedPhone) => {
+    if (!savedPhone) {
+        phone.value = ''
+        return
+    }
+
+    const phoneNumber = parsePhoneNumberFromString(savedPhone)
+
+    if (!phoneNumber) {
+        phone.value = savedPhone
+        return
+    }
+
+    const formatter = new AsYouType(selectedCountry.value.code)
+
+    phone.value = formatter.input(
+        phoneNumber.nationalNumber
+    )
 }
 
 onMounted(() => {
@@ -235,16 +299,49 @@ onMounted(() => {
                                     Телефон
                                 </label>
 
-                                <input
-                                    :value="phone"
-                                    type="tel"
-                                    inputmode="numeric"
-                                    autocomplete="tel"
-                                    placeholder="+7 (___) ___-__-__"
-                                    class="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none transition focus:border-black"
-                                    @input="handlePhoneInput"/>
-                            </div>
+                                <div
+                                    class="flex items-stretch gap-3 border-b border-neutral-300 transition focus-within:border-black">
 
+                                    <!-- Country -->
+                                    <div class="relative flex shrink-0 items-center">
+                                        <select
+                                            v-model="selectedCountry"
+                                            class="h-full cursor-pointer appearance-none bg-transparent py-3 pr-6 text-sm outline-none"
+                                            @change="handleCountryChange">
+                                            <option
+                                                v-for="country in countries"
+                                                :key="country.code"
+                                                :value="country">
+                                                {{ country.code }} {{ country.dialCode }}
+                                            </option>
+                                        </select>
+
+                                        <svg
+                                            class="pointer-events-none absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.5"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="6 9 12 15 18 9"/>
+                                        </svg>
+                                    </div>
+
+                                    <!-- Divider -->
+                                    <span class="my-3 w-px bg-neutral-300"></span>
+
+                                    <!-- Input -->
+                                    <input
+                                        :value="phone"
+                                        type="tel"
+                                        inputmode="tel"
+                                        autocomplete="tel"
+                                        placeholder="Введите номер телефона"
+                                        class="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none"
+                                        @input="handlePhoneInput"/>
+                                </div>
+                            </div>
                         </div>
 
                         <p

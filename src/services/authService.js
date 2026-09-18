@@ -35,7 +35,7 @@ export const getProfile = async (userId) => {
     return data
 }
 
-export const updateProfile = async ({userId, firstName, lastName, email, phone,}) => {
+export const updateProfile = async ({userId, firstName, lastName, email, phone, phone_country}) => {
     const { data, error } = await supabase
         .from('profiles')
         .upsert({
@@ -44,6 +44,7 @@ export const updateProfile = async ({userId, firstName, lastName, email, phone,}
             last_name: lastName,
             email,
             phone,
+            phone_country,
             updated_at: new Date().toISOString(),
         })
         .select()

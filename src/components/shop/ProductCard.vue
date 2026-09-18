@@ -1,10 +1,11 @@
 <script setup>
 import { Heart } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
-
+import { useFavoritesStore } from '../../stores/favorites'
 import { formatPrice } from '../../utils/formatPrice'
+import {computed} from "vue";
 
-defineProps({
+const props = defineProps({
     product: {
         type: Object,
         required: true,
@@ -15,6 +16,25 @@ defineProps({
         default: '',
     },
 })
+
+const favoritesStore = useFavoritesStore()
+
+const isFavorite = computed(() => {
+    return favoritesStore.isFavorite(props.product.id)
+})
+
+const toggleFavorite = async () => {
+    const result = await favoritesStore.toggleFavorite(props.product.id)
+
+    if (result.requiresAuth) {
+        console.log('Нужно войти в аккаунт')
+        return
+    }
+
+    if (!result.success) {
+        console.error('Favorite error:', result.error)
+    }
+}
 
 const getProductImage = (product) => {
     if (product.images?.length) {
@@ -90,9 +110,13 @@ const getColorHex = (color) => {
             <button
                 type="button"
                 class="absolute right-2 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/90 transition hover:bg-white"
-                aria-label="Добавить в избранное"
-                @click.prevent.stop>
-                <Heart :size="16" />
+                :aria-label="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
+                @click.prevent.stop="toggleFavorite">
+                <Heart
+                    :size="16"
+                    :stroke-width="1.5"
+                    :fill="isFavorite ? 'black' : 'transparent'"
+                    :class="isFavorite ? 'text-black' : 'text-neutral-700'"/>
             </button>
         </RouterLink>
 
