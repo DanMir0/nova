@@ -35,3 +35,21 @@ export const formatPhone = (value) => {
 
     return formatted
 }
+
+export const normalizePhone = (value) => {
+    const digits = value.replace(/\D/g, '')
+
+    if (!digits) {
+        return ''
+    }
+
+    if (digits.startsWith('8')) {
+        return `+7${digits.slice(1)}`
+    }
+
+    if (digits.startsWith('7')) {
+        return `+${digits}`
+    }
+
+    return `+${digits}`
+}

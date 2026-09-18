@@ -8,8 +8,13 @@ import {
     LogOut,
 } from 'lucide-vue-next'
 import OrderHistory from '../components/account/OrderHistory.vue'
-import {getCurrentUser, updateProfile, refreshCurrentUser, signOut} from "../services/authService.js";
-import { formatPhone } from '../utils/formatters'
+import {
+    getCurrentUser,
+    updateProfile,
+    getProfile,
+    signOut
+} from "../services/authService.js";
+import {formatPhone, normalizePhone} from '../utils/formatters'
 import router from "../router/index.js";
 
 const activeSection = ref('profile')
@@ -63,14 +68,19 @@ const loadProfile = async () => {
             return
         }
 
-        firstName.value = user.user_metadata?.first_name || ''
-        lastName.value = user.user_metadata?.last_name || ''
+        const profile = await getProfile(user.id)
 
-        email.value = user.email || ''
-        phone.value = formatPhone(user.phone || '')
+        firstName.value = profile?.first_name || ''
+        lastName.value = profile?.last_name || ''
+
+        email.value = profile?.email || user.email || ''
+
+        phone.value = formatPhone(profile?.phone || '')
     } catch (error) {
         console.error('Ошибка загрузки профиля:', error)
-        errorMessage.value = 'Не удалось загрузить данные профиля'
+
+        errorMessage.value =
+            'Не удалось загрузить данные профиля'
     } finally {
         loading.value = false
     }
@@ -82,20 +92,27 @@ const saveProfile = async () => {
         errorMessage.value = ''
         successMessage.value = ''
 
+        const user = await getCurrentUser()
+
+        if (!user) {
+            errorMessage.value = 'Пользователь не найден'
+            return
+        }
+
+        const normalizedPhone = normalizePhone(phone.value)
+
+        if (normalizedPhone && normalizedPhone.length !== 12) {
+            errorMessage.value = 'Введите полный номер телефона'
+            return
+        }
+
         await updateProfile({
+            userId: user.id,
             firstName: firstName.value,
             lastName: lastName.value,
             email: email.value,
+            phone: normalizedPhone,
         })
-
-        const user = await refreshCurrentUser()
-
-        if (user) {
-            firstName.value = user.user_metadata?.first_name || ''
-            lastName.value = user.user_metadata?.last_name || ''
-            email.value = user.email || ''
-            phone.value = formatPhone(user.phone || '')
-        }
 
         successMessage.value = 'Изменения сохранены'
     } catch (error) {
@@ -137,31 +154,31 @@ onMounted(() => {
             <aside class="flex min-h-[500px] flex-col">
                 <nav class="space-y-1">
                     <button
-                        v-for="item in menuItems"
-                        :key="item.id"
-                        type="button"
-                        class="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-sm transition"
-                        :class="
+                            v-for="item in menuItems"
+                            :key="item.id"
+                            type="button"
+                            class="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-sm transition"
+                            :class="
                             activeSection === item.id
                                 ? 'bg-neutral-100 text-black'
                                 : 'text-neutral-500 hover:bg-neutral-50 hover:text-black'"
-                        @click="setSection(item.id)">
+                            @click="setSection(item.id)">
                         <component
-                            :is="item.icon"
-                            :size="18"
-                            :stroke-width="1.5"/>
+                                :is="item.icon"
+                                :size="18"
+                                :stroke-width="1.5"/>
 
                         <span>{{ item.label }}</span>
                     </button>
                 </nav>
 
                 <button
-                    type="button"
-                    class="mt-auto flex cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-sm text-neutral-500 transition hover:text-black"
-                    @click="handleSignOut">
+                        type="button"
+                        class="mt-auto flex cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-sm text-neutral-500 transition hover:text-black"
+                        @click="handleSignOut">
                     <LogOut
-                        :size="18"
-                        :stroke-width="1.5"/>
+                            :size="18"
+                            :stroke-width="1.5"/>
 
                     <span>Выйти</span>
                 </button>
@@ -183,10 +200,10 @@ onMounted(() => {
                                 </label>
 
                                 <input
-                                    v-model="firstName"
-                                    type="text"
-                                    class="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none transition focus:border-black"
-                                    placeholder="Введите имя"/>
+                                        v-model="firstName"
+                                        type="text"
+                                        class="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none transition focus:border-black"
+                                        placeholder="Введите имя"/>
                             </div>
 
                             <div>
@@ -195,10 +212,10 @@ onMounted(() => {
                                 </label>
 
                                 <input
-                                    v-model="lastName"
-                                    type="text"
-                                    class="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none transition focus:border-black"
-                                    placeholder="Введите фамилию"/>
+                                        v-model="lastName"
+                                        type="text"
+                                        class="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none transition focus:border-black"
+                                        placeholder="Введите фамилию"/>
                             </div>
 
                             <div>
@@ -207,10 +224,10 @@ onMounted(() => {
                                 </label>
 
                                 <input
-                                    v-model="email"
-                                    type="email"
-                                    class="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none transition focus:border-black"
-                                    placeholder="Введите email"/>
+                                        v-model="email"
+                                        type="email"
+                                        class="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none transition focus:border-black"
+                                        placeholder="Введите email"/>
                             </div>
 
                             <div>
@@ -231,22 +248,22 @@ onMounted(() => {
                         </div>
 
                         <p
-                            v-if="successMessage"
-                            class="mt-4 text-sm text-green-600">
+                                v-if="successMessage"
+                                class="mt-4 text-sm text-green-600">
                             {{ successMessage }}
                         </p>
 
                         <p
-                            v-if="errorMessage"
-                            class="mt-4 text-sm text-red-600">
+                                v-if="errorMessage"
+                                class="mt-4 text-sm text-red-600">
                             {{ errorMessage }}
                         </p>
 
                         <button
-                            type="button"
-                            class="mt-8 cursor-pointer bg-black px-8 py-3 text-sm text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
-                            :disabled="saving"
-                            @click="saveProfile">
+                                type="button"
+                                class="mt-8 cursor-pointer bg-black px-8 py-3 text-sm text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                :disabled="saving"
+                                @click="saveProfile">
                             {{ saving ? 'Сохранение...' : 'Сохранить изменения' }}
                         </button>
                     </div>
@@ -259,7 +276,7 @@ onMounted(() => {
                     </h2>
 
                     <div class="mt-6 border border-neutral-200 p-6">
-                        <OrderHistory />
+                        <OrderHistory/>
                     </div>
                 </div>
 
