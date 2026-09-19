@@ -1,5 +1,5 @@
 <script setup>
-import {Search, UserRound, Heart, ShoppingBag, Menu,} from 'lucide-vue-next'
+import {Search, UserRound, Heart, ShoppingBag, Menu, X} from 'lucide-vue-next'
 import {ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useAuthStore} from '../stores/auth'
@@ -18,6 +18,7 @@ const cartStore = useCartStore()
 const showLoginModal = ref(false)
 const showRegisterModal = ref(false)
 const showForgotModal = ref(false)
+const isMobileMenuOpen = ref(false)
 
 const searchInput = ref(
     route.query.search || ''
@@ -77,6 +78,22 @@ function handleRegisterSuccess() {
 
 const handleLoginSuccess = () => {
   closeAuthModals()
+}
+
+const openMobileMenu = () => {
+    isMobileMenuOpen.value = true
+}
+
+const closeMobileMenu = () => {
+    isMobileMenuOpen.value = false
+}
+
+const toggleMobileMenu = () => {
+    isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
+
+const handleMobileNavigation = () => {
+    closeMobileMenu()
 }
 </script>
 
@@ -191,14 +208,145 @@ const handleLoginSuccess = () => {
         </router-link>
 
         <!-- Mobile menu -->
-        <button
-            type="button"
-            aria-label="Открыть меню"
-            class="lg:hidden">
-          <Menu :size="21" :stroke-width="1.5"/>
-        </button>
+          <button
+                  type="button"
+                  :aria-label="isMobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'"
+                  class="cursor-pointer lg:hidden"
+                  @click="toggleMobileMenu">
+              <X
+                      v-if="isMobileMenuOpen"
+                      :size="21"
+                      :stroke-width="1.5"/>
+
+              <Menu
+                      v-else
+                      :size="21"
+                      :stroke-width="1.5"/>
+          </button>
       </div>
     </div>
+      <!-- Mobile menu -->
+      <!-- Mobile / tablet menu -->
+      <div
+              v-if="isMobileMenuOpen"
+              class="fixed inset-0 z-30 lg:hidden">
+
+          <!-- Backdrop -->
+          <div
+                  class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                  @click="closeMobileMenu"></div>
+
+          <!-- Panel -->
+          <aside
+                  class="absolute left-0 top-0 flex h-full w-full max-w-full flex-col border-r border-neutral-200 bg-white
+               sm:max-w-sm">
+
+              <!-- Panel header -->
+              <div
+                      class="flex h-20 shrink-0 items-center justify-between border-b border-neutral-100 px-6">
+                  <router-link
+                          to="/"
+                          class="text-2xl font-medium tracking-tight"
+                          @click="handleMobileNavigation">
+                      Nova
+                  </router-link>
+
+                  <button
+                          type="button"
+                          aria-label="Закрыть меню"
+                          class="cursor-pointer transition-opacity hover:opacity-50"
+                          @click="closeMobileMenu">
+                      <X :size="21" :stroke-width="1.5"/>
+                  </button>
+              </div>
+
+              <!-- Scrollable content -->
+              <div class="flex-1 overflow-y-auto px-6 py-6">
+                  <nav class="flex flex-col">
+                      <RouterLink
+                              :to="{ path: '/shop', query: { gender: 'women' } }"
+                              class="border-b border-neutral-100 py-4 text-base"
+                              @click="handleMobileNavigation">
+                          Женщинам
+                      </RouterLink>
+
+                      <RouterLink
+                              :to="{ path: '/shop', query: { gender: 'men' } }"
+                              class="border-b border-neutral-100 py-4 text-base"
+                              @click="handleMobileNavigation">
+                          Мужчинам
+                      </RouterLink>
+
+                      <RouterLink
+                              :to="{ path: '/shop', query: { new: 'true' } }"
+                              class="border-b border-neutral-100 py-4 text-base"
+                              @click="handleMobileNavigation">
+                          Новинки
+                      </RouterLink>
+
+                      <RouterLink
+                              to="/collections"
+                              class="border-b border-neutral-100 py-4 text-base"
+                              @click="handleMobileNavigation">
+                          Коллекции
+                      </RouterLink>
+
+                      <RouterLink
+                              :to="{ path: '/shop', query: { sale: 'true' } }"
+                              class="border-b border-neutral-100 py-4 text-base"
+                              @click="handleMobileNavigation">
+                          Распродажа
+                      </RouterLink>
+                  </nav>
+
+                  <!-- Mobile actions -->
+                  <div class="mt-6 flex flex-col gap-4">
+                      <!-- Account -->
+                      <button
+                              v-if="!authStore.user"
+                              type="button"
+                              class="flex cursor-pointer items-center gap-3 text-sm"
+                              @click="openLogin(); closeMobileMenu()">
+                          <UserRound :size="19" :stroke-width="1.5"/>
+                          Войти
+                      </button>
+
+                      <RouterLink
+                              v-else
+                              to="/account"
+                              class="flex items-center gap-3 text-sm"
+                              @click="handleMobileNavigation">
+                          <UserRound :size="19" :stroke-width="1.5"/>
+                          Личный кабинет
+                      </RouterLink>
+
+                      <!-- Favorites -->
+                      <RouterLink
+                              to="/favorites"
+                              class="flex items-center gap-3 text-sm"
+                              @click="handleMobileNavigation">
+                          <Heart :size="19" :stroke-width="1.5"/>
+                          Избранное
+                      </RouterLink>
+
+                      <!-- Cart -->
+                      <RouterLink
+                              to="/cart"
+                              class="flex items-center gap-3 text-sm"
+                              @click="handleMobileNavigation">
+                          <ShoppingBag :size="19" :stroke-width="1.5"/>
+                          <span>
+                        Корзина
+                        <span class="text-neutral-400">
+                            ({{ cartStore.totalItems }})
+                        </span>
+                    </span>
+                      </RouterLink>
+                  </div>
+              </div>
+          </aside>
+      </div>
+
   </header>
   <LoginModal
       v-if="showLoginModal"
