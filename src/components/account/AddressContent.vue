@@ -213,11 +213,11 @@ const makeDefault = (addressId) => {
                 </button>
             </section>
 
-            <!-- ДЕТАЛИ / ФОРМА -->
+
             <section
                     class="border border-neutral-200 p-6 sm:p-8">
 
-                <!-- ПРОСМОТР АДРЕСА -->
+
                 <template
                         v-if="addressesStore.selectedAddress &&!showForm">
                     <div class="flex items-center gap-2">
@@ -300,7 +300,6 @@ const makeDefault = (addressId) => {
                     </div>
                 </template>
 
-                <!-- ФОРМА -->
                 <template v-else>
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-medium">

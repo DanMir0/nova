@@ -5,16 +5,13 @@ import FavoritesContent from '../components/account/FavoritesContent.vue'
 <template>
     <main class="min-h-screen bg-white">
         <div
-                class="mx-auto w-full max-w-[1440px] px-5 pb-20 pt-8 sm:px-8 lg:px-10 xl:px-12"
-        >
+                class="mx-auto w-full max-w-[1440px] px-5 pb-20 pt-8 sm:px-8 lg:px-10 xl:px-12">
             <!-- Breadcrumbs -->
             <nav
-                    class="mb-5 flex items-center gap-2 text-xs text-neutral-400"
-            >
+                    class="mb-5 flex items-center gap-2 text-xs text-neutral-400">
                 <RouterLink
                         to="/"
-                        class="transition hover:text-black"
-                >
+                        class="transition hover:text-black">
                     Главная
                 </RouterLink>
 
