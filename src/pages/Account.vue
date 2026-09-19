@@ -16,6 +16,7 @@ import {
 } from "../services/authService.js";
 import {AsYouType, parsePhoneNumberFromString,} from 'libphonenumber-js'
 import router from "../router/index.js";
+import FavoritesContent from "../components/account/FavoritesContent.vue";
 
 const activeSection = ref('profile')
 
@@ -384,9 +385,7 @@ onMounted(() => {
                     </h2>
 
                     <div class="mt-6 border border-neutral-200 p-6">
-                        <p class="text-sm text-neutral-500">
-                            Здесь будут отображаться избранные товары.
-                        </p>
+                        <FavoritesContent />
                     </div>
                 </div>
 
