@@ -12,7 +12,6 @@ import {useCartStore} from "../stores/cart.js";
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-const favoritesStore = useFavoritesStore()
 const cartStore = useCartStore()
 
 const showLoginModal = ref(false)
@@ -80,10 +79,6 @@ const handleLoginSuccess = () => {
   closeAuthModals()
 }
 
-const openMobileMenu = () => {
-    isMobileMenuOpen.value = true
-}
-
 const closeMobileMenu = () => {
     isMobileMenuOpen.value = false
 }
@@ -100,7 +95,7 @@ const handleMobileNavigation = () => {
 <template>
   <header class="absolute left-0 top-0 z-20 w-full">
     <div
-        class="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-6 lg:px-10">
+        class="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
       <!-- Logo -->
       <router-link
           to="/"
@@ -142,8 +137,8 @@ const handleMobileNavigation = () => {
       </nav>
 
       <!-- Actions -->
-      <div class="flex items-center gap-5">
-        <div class="relative">
+      <div class="flex items-center gap-4 sm:gap-5">
+        <div class="relative hidden sm:block">
           <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -225,7 +220,7 @@ const handleMobileNavigation = () => {
           </button>
       </div>
     </div>
-      <!-- Mobile menu -->
+
       <!-- Mobile / tablet menu -->
       <div
               v-if="isMobileMenuOpen"
@@ -262,6 +257,22 @@ const handleMobileNavigation = () => {
 
               <!-- Scrollable content -->
               <div class="flex-1 overflow-y-auto px-6 py-6">
+                  <!-- Mobile search -->
+                  <div class="mb-6">
+                      <div class="relative">
+                          <Search
+                                  :size="19"
+                                  :stroke-width="1.5"
+                                  class="absolute left-0 top-1/2 -translate-y-1/2"/>
+
+                          <input
+                                  v-model="searchInput"
+                                  type="search"
+                                  placeholder="Поиск"
+                                  class="w-full border-b border-neutral-200 bg-transparent py-3 pl-8 pr-2 text-sm outline-none transition focus:border-black"
+                          />
+                      </div>
+                  </div>
                   <nav class="flex flex-col">
                       <RouterLink
                               :to="{ path: '/shop', query: { gender: 'women' } }"

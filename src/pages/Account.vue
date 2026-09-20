@@ -210,20 +210,21 @@ onMounted(() => {
 </script>
 
 <template>
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 class="text-2xl font-normal tracking-tight">
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <h1 class="text-xl font-normal tracking-tight sm:text-2xl">
             Личный кабинет
         </h1>
 
-        <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[220px_1fr]">
+        <div class="mt-8 grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-[220px_1fr] lg:gap-10">
 
-            <aside class="flex min-h-[500px] flex-col">
-                <nav class="space-y-1">
+            <aside class="flex flex-col lg:min-h-[500px] lg:flex-col">
+                <nav class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
                     <button
                             v-for="item in menuItems"
                             :key="item.id"
                             type="button"
-                            class="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-sm transition"
+                            class="flex shrink-0 cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm
+                            transition sm:px-4 lg:w-full"
                             :class="
                             activeSection === item.id
                                 ? 'bg-neutral-100 text-black'
@@ -232,7 +233,8 @@ onMounted(() => {
                         <component
                                 :is="item.icon"
                                 :size="18"
-                                :stroke-width="1.5"/>
+                                :stroke-width="1.5"
+                                class="shrink-0"/>
 
                         <span>{{ item.label }}</span>
                     </button>
@@ -240,7 +242,8 @@ onMounted(() => {
 
                 <button
                         type="button"
-                        class="mt-auto flex cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-sm text-neutral-500 transition hover:text-black"
+                        class="mt-3 flex w-fit cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm
+                        text-neutral-500 transition hover:text-black lg:mt-auto lg:w-full lg:gap-3"
                         @click="handleSignOut">
                     <LogOut
                             :size="18"
@@ -257,8 +260,8 @@ onMounted(() => {
                         Профиль
                     </h2>
 
-                    <div class="mt-6 border border-neutral-200 p-6">
-                        <div class="grid gap-5 sm:grid-cols-2">
+                    <div class="mt-5 border border-neutral-200 p-4 sm:mt-6 sm:p-6">
+                        <div class="grid gap-4 sm:gap-5 sm:grid-cols-2">
 
                             <div>
                                 <label class="mb-2 block text-sm text-neutral-700">
@@ -360,7 +363,8 @@ onMounted(() => {
 
                         <button
                                 type="button"
-                                class="mt-8 cursor-pointer bg-black px-8 py-3 text-sm text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="mt-7 w-full cursor-pointer bg-black px-6 py-3.5 text-sm text-white transition
+                                hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8 sm:py-3"
                                 :disabled="saving"
                                 @click="saveProfile">
                             {{ saving ? 'Сохранение...' : 'Сохранить изменения' }}
@@ -374,7 +378,7 @@ onMounted(() => {
                         Мои заказы
                     </h2>
 
-                    <div class="mt-6 border border-neutral-200 p-6">
+                    <div class="mt-5 border border-neutral-200 p-4 sm:mt-6 sm:p-6">
                         <OrderHistory/>
                     </div>
                 </div>
@@ -385,7 +389,7 @@ onMounted(() => {
                         Избранное
                     </h2>
 
-                    <div class="mt-6 border border-neutral-200 p-6">
+                    <div class="mt-5 border border-neutral-200 p-4 sm:mt-6 sm:p-6">
                         <FavoritesContent />
                     </div>
                 </div>
@@ -396,7 +400,7 @@ onMounted(() => {
                         Адрес доставки
                     </h2>
 
-                    <div class="mt-6 border border-neutral-200 p-6">
+                    <div class="mt-5 border border-neutral-200 p-4 sm:mt-6 sm:p-6">
                         <AddressContent/>
                     </div>
                 </div>
