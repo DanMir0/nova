@@ -5,7 +5,7 @@ import NBenefitsSection from '../components/NBenefitsSection.vue'
 </script>
 
 <template>
-  <div>
+  <div class="w-full overflow-hidden">
     <NHeroSection />
 
     <NCategorySection />

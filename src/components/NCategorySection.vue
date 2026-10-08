@@ -5,8 +5,8 @@ import WomenImg from '/images/categorySection/women.png'
 </script>
 
 <template>
-  <section class="mx-auto max-w-[1440px] px-6 py-3 lg:px-10">
-    <div class="grid gap-4 md:grid-cols-2">
+  <section class="mx-auto max-w-[1440px] px-4 py-3 sm:px-6 sm:py-4 lg:px-10">
+    <div class="grid gap-3 sm:gap-4 md:grid-cols-2">
       <NCategoryCard
           title="Женщинам"
           link="/shop?gender=women"
