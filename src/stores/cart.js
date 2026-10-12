@@ -1,34 +1,31 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
-const STORAGE_KEY = 'nova-cart'
+const CART_STORAGE_KEY = 'nova-cart'
+const PROMO_STORAGE_KEY = 'nova-cart-promo'
 
-const loadCart = () => {
+const loadFromStorage = (key, fallback) => {
     try {
-        const savedCart = localStorage.getItem(STORAGE_KEY)
+        const saved = localStorage.getItem(key)
 
-        if (!savedCart) {
-            return []
+        if (!saved) {
+            return fallback
         }
 
-        const parsedCart = JSON.parse(savedCart)
-
-        return Array.isArray(parsedCart)
-            ? parsedCart
-            : []
-
+        return JSON.parse(saved)
     } catch (error) {
-        console.error('Load cart from localStorage error:', error)
-
-        return []
+        console.error(`Ошибка загрузки ${key}:`, error)
+        return fallback
     }
 }
 
+const loadCart = () => {
+    const saved = loadFromStorage(CART_STORAGE_KEY, [])
+    return Array.isArray(saved) ? saved : []
+}
+
 export const useCartStore = defineStore('cart', () => {
-
-    // Загружаем корзину из localStorage при создании store
     const items = ref(loadCart())
-
 
     const addToCart = (
         product,
@@ -36,66 +33,49 @@ export const useCartStore = defineStore('cart', () => {
         color,
         quantity = 1
     ) => {
-
         const existingItem = items.value.find(
-            item =>
+            (item) =>
                 item.product.id === product.id &&
                 item.size === size &&
                 item.color === color
         )
 
         if (existingItem) {
-
             existingItem.quantity += quantity
-
             return
         }
 
         items.value.push({
             id: crypto.randomUUID(),
-
             product,
-
             size,
-
             color,
-
             quantity,
         })
     }
 
     const removeFromCart = (itemId) => {
-
         items.value = items.value.filter(
-            item => item.id !== itemId
+            (item) => item.id !== itemId
         )
     }
 
     const updateQuantity = (itemId, quantity) => {
-
         const item = items.value.find(
-            item => item.id === itemId
+            (item) => item.id === itemId
         )
 
-        if (!item) {
-            return
-        }
+        if (!item) return
 
         if (quantity <= 0) {
             removeFromCart(itemId)
-
             return
         }
 
         item.quantity = quantity
     }
 
-    const clearCart = () => {
-        items.value = []
-    }
-
     const totalItems = computed(() => {
-
         return items.value.reduce(
             (total, item) => total + item.quantity,
             0
@@ -103,44 +83,89 @@ export const useCartStore = defineStore('cart', () => {
     })
 
     const totalPrice = computed(() => {
-
         return items.value.reduce(
             (total, item) =>
                 total +
-                Number(item.product.price) *
-                item.quantity,
+                Number(item.product.price) * item.quantity,
             0
         )
     })
 
+    const promo = ref(
+        loadFromStorage(PROMO_STORAGE_KEY, null)
+    )
+    const setPromo = (data) => {
+        promo.value = data
+    }
+
+    const clearPromo = () => {
+        promo.value = null
+    }
+
+    const discountAmount = computed(() => {
+        if (!promo.value) return 0
+
+        return Math.round(
+            Number(totalPrice.value) *
+            Number(promo.value.discount) / 100
+        )
+    })
+
+    const finalTotal = computed(() => {
+        return Math.max(
+            0,
+            Number(totalPrice.value) - discountAmount.value
+        )
+    })
+
+    const clearCart = () => {
+        items.value = []
+        clearPromo()
+    }
+
     watch(
         items,
         (newItems) => {
-
             try {
                 localStorage.setItem(
-                    STORAGE_KEY,
+                    CART_STORAGE_KEY,
                     JSON.stringify(newItems)
                 )
-
             } catch (error) {
-                console.error(
-                    'Save cart to localStorage error:',
-                    error
-                )
+                console.error('Ошибка сохранения корзины:', error)
             }
         },
-        {
-            deep: true,
-        }
+        { deep: true }
+    )
+
+    watch(
+        promo,
+        (newPromo) => {
+            try {
+                if (newPromo) {
+                    localStorage.setItem(
+                        PROMO_STORAGE_KEY,
+                        JSON.stringify(newPromo)
+                    )
+                } else {
+                    localStorage.removeItem(PROMO_STORAGE_KEY)
+                }
+            } catch (error) {
+                console.error('Ошибка сохранения промокода:', error)
+            }
+        },
+        { deep: true }
     )
 
     return {
         items,
-
         totalItems,
         totalPrice,
-
+        promo,
+        discountAmount,
+        finalTotal,
+        setPromo,
+        clearPromo,
         addToCart,
         removeFromCart,
         updateQuantity,

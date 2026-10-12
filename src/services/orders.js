@@ -1,66 +1,51 @@
-import { supabase } from '../lib/supabase'
+import {supabase} from '../lib/supabase'
 
 export const createOrder = async ({
-                                      userId,
                                       cartItems,
                                       address,
-                                      deliveryMethod,
-                                      deliveryPrice,
-                                      total,
+                                      deliveryMethod = 'courier',
+                                      deliveryPrice = 0,
+                                      promoCode = null,
                                   }) => {
-
-    const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-            user_id: userId,
-            status: 'pending',
-            total,
-            delivery_method: deliveryMethod,
-            delivery_price: deliveryPrice,
-            city: address.city,
-            address: address.address,
-            recipient: address.recipient,
-            phone: address.phone,
-        })
-        .select()
-        .single()
-
-    if (orderError) {
-        throw orderError
-    }
-
-    const orderItems = cartItems.map(item => ({
-        order_id: order.id,
+    const items = cartItems.map((item) => ({
         product_id: item.product.id,
-        product_name: item.product.name,
-        product_image:
-            item.product.images?.[0] ||
-            item.product.image_url ||
-            null,
-        price: Number(item.product.price),
         quantity: item.quantity,
         size: item.size || null,
         color: item.color || null,
     }))
 
-    const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems)
+    const {data, error} = await supabase.rpc(
+        'create_order_with_promo',
+        {
+            p_items: items,
+            p_address: {
+                city: address.city,
+                address: address.address,
+                recipient: address.recipient,
+                phone: address.phone,
+            },
+            p_delivery_method: deliveryMethod,
+            p_delivery_price: deliveryPrice,
+            p_promo_code: promoCode,
+        }
+    )
 
-    if (itemsError) {
-        throw itemsError
+    if (error) {
+        throw error
     }
 
-    return order
+    return data
 }
 
 export const getUserOrders = async (userId) => {
-    const { data, error } = await supabase
+    const {data, error} = await supabase
         .from('orders')
         .select(`
             id,
             status,
             total,
+            promo_code,
+            discount,
             delivery_method,
             delivery_price,
             city,
