@@ -14,6 +14,8 @@ import Delivery from "../pages/Delivery.vue";
 import OrderConfirmation from "../pages/OrderConfirmation.vue";
 import OrderSuccess from "../pages/OrderSuccess.vue";
 import Collection from "../pages/Collection.vue";
+import AdminDashboard from '../pages/admin/AdminDashboard.vue'
+import AdminProducts from '../pages/admin/AdminProducts.vue'
 
 const routes = [
     {
@@ -89,6 +91,24 @@ const routes = [
         name: 'order-success',
         component: OrderSuccess,
     },
+    {
+        path: '/admin',
+        name: 'admin',
+        component: AdminDashboard,
+        meta: {
+            requiresAuth: true,
+            requiresAdmin: true,
+        },
+    },
+    {
+        path: '/admin/products',
+        name: 'admin-products',
+        component: AdminProducts,
+        meta: {
+            requiresAuth: true,
+            requiresAdmin: true,
+        },
+    },
 ]
 
 const router = createRouter({
@@ -104,6 +124,14 @@ router.beforeEach(async (to) => {
 
     if (to.meta.requiresAuth && !authStore.user) {
         return '/'
+    }
+
+    if (to.meta.requiresAdmin) {
+        await authStore.fetchProfile()
+
+        if (!authStore.isAdmin()) {
+            return '/'
+        }
     }
 })
 

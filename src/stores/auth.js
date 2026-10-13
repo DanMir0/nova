@@ -1,10 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '../lib/supabase'
+import { getProfile } from '../services/authService.js'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(null)
     const session = ref(null)
+    const profile = ref(null)
+    const profileLoading = ref(false)
 
     const loading = ref(false)
     const initialized = ref(false)
@@ -137,6 +140,7 @@ export const useAuthStore = defineStore('auth', () => {
 
             user.value = null
             session.value = null
+            profile.value = null
         } catch (err) {
             console.error('Sign out error:', err)
 
@@ -211,6 +215,34 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    const fetchProfile = async () => {
+        if (!user.value) {
+            profile.value = null
+            return null
+        }
+
+        try {
+            profileLoading.value = true
+
+            const data = await getProfile(user.value.id)
+
+            profile.value = data
+
+            return data
+        } catch (err) {
+            console.error('Profile loading error:', err)
+            profile.value = null
+
+            return null
+        } finally {
+            profileLoading.value = false
+        }
+    }
+
+    const isAdmin = () => {
+        return profile.value?.role === 'admin'
+    }
+
     return {
         user,
         session,
@@ -224,5 +256,8 @@ export const useAuthStore = defineStore('auth', () => {
         signOut,
         resetPassword,
         updatePassword,
+
+        fetchProfile,
+        isAdmin,
     }
 })
