@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import {
   getAdminProducts,
   createProduct,
@@ -17,16 +17,106 @@ const success = ref('')
 const showForm = ref(false)
 const editingId = ref(null)
 
-const selectedImage = ref(null)
-const imagePreview = ref('')
+const selectedImageFiles = ref([])
+const imagePreviews = ref([])
+const existingImages = ref([])
+
+const resetImageSelection = () => {
+  imagePreviews.value.forEach((url) => URL.revokeObjectURL(url))
+
+  imagePreviews.value = []
+  selectedImageFiles.value = []
+}
+
 const uploadingImage = ref(false)
 
-const handleImageChange = (event) => {
-  const file = event.target.files?.[0] ?? null
+const collectionOptions = [
+  { value: 'spring-summer', label: 'Весна/Лето' },
+  { value: 'fall-winter', label: 'Осень/Зима' },
+]
 
-  selectedImage.value = file
-  imagePreview.value = file ? URL.createObjectURL(file) : ''
+const categoryOptions = [
+  { value: 'pants', label: 'Брюки' },
+  { value: 'shirts', label: 'Рубашки' },
+  { value: 't-shirts', label: 'Футболки' },
+  { value: 'outerwear', label: 'Верхняя одежда' },
+  { value: 'dresses', label: 'Платья' },
+  { value: 'skirts', label: 'Юбки' },
+  { value: 'knitwear', label: 'Трикотаж' },
+  { value: 'jeans', label: 'Джинсы' },
+]
+
+const colorOptions = [
+  { value: 'black', label: 'Чёрный', hex: '#171717' },
+  { value: 'white', label: 'Белый', hex: '#ffffff' },
+  { value: 'grey', label: 'Серый', hex: '#9b9b9b' },
+  { value: 'brown', label: 'Коричневый', hex: '#8b7967' },
+  { value: 'beige', label: 'Бежевый', hex: '#d8d0c4' },
+  { value: 'yellow', label: 'Жёлтый', hex: '#f2c06b' },
+  { value: 'blue', label: 'Синий', hex: '#4f6d8a' },
+]
+
+const selectedColor = ref('black')
+
+const selectedColorLabel = computed(() =>
+    colorOptions.find((color) => color.value === selectedColor.value)?.label ?? ''
+)
+
+const variantGroups = computed(() => {
+  const groups = new Map()
+
+  products.value.forEach((product) => {
+    if (product.variant_group_id) {
+      if (!groups.has(product.variant_group_id)) {
+        groups.set(product.variant_group_id, {
+          id: product.variant_group_id,
+          name: product.name,
+        })
+      }
+    }
+  })
+
+  return [...groups.values()]
+})
+
+const selectedVariantGroup = ref('')
+const createVariantGroup = ref(false)
+
+const handleImageChange = (event) => {
+  resetImageSelection()
+
+  const files = Array.from(event.target.files ?? [])
+
+  const invalidFile = files.find((file) => {
+    return !file.type.startsWith('image/') ||
+        file.size > 5 * 1024 * 1024
+  })
+
+  if (invalidFile) {
+    error.value = 'Выбирай изображения размером не более 5 МБ каждое.'
+    event.target.value = ''
+    return
+  }
+
+  error.value = ''
+  selectedImageFiles.value = files
+  imagePreviews.value = files.map((file) => URL.createObjectURL(file))
+
+  event.target.value = ''
 }
+
+const removeNewImage = (index) => {
+  URL.revokeObjectURL(imagePreviews.value[index])
+
+  imagePreviews.value.splice(index, 1)
+  selectedImageFiles.value.splice(index, 1)
+}
+
+const removeExistingImage = (index) => {
+  existingImages.value.splice(index, 1)
+}
+
+onBeforeUnmount(resetImageSelection)
 
 const emptyForm = () => ({
   name: '',
@@ -43,6 +133,8 @@ const emptyForm = () => ({
   is_new: false,
   is_sale: false,
   is_active: true,
+  images: [],
+  variant_group_id: null,
 })
 
 const form = ref(emptyForm())
@@ -62,18 +154,26 @@ const fetchProducts = async () => {
 }
 
 const openCreateForm = () => {
-  selectedImage.value = null
-  imagePreview.value = ''
+  resetImageSelection()
+  existingImages.value = []
   editingId.value = null
   form.value = emptyForm()
   showForm.value = true
   error.value = ''
   success.value = ''
+  selectedColor.value = 'black'
+  selectedVariantGroup.value = ''
+  createVariantGroup.value = false
 }
 
 const openEditForm = (product) => {
-  selectedImage.value = null
-  imagePreview.value = ''
+  resetImageSelection()
+
+  existingImages.value = Array.isArray(product.images)
+      ? [...product.images]
+      : product.image_url
+          ? [product.image_url]
+          : []
   editingId.value = product.id
 
   form.value = {
@@ -95,8 +195,17 @@ const openEditForm = (product) => {
     is_new: Boolean(product.is_new),
     is_sale: Boolean(product.is_sale),
     is_active: Boolean(product.is_active),
+    images: Array.isArray(product.images)
+        ? [...product.images]
+        : product.image_url
+            ? [product.image_url]
+            : [],
+    variant_group_id: product.variant_group_id ?? null,
   }
 
+  selectedColor.value = product.colors?.[0] ?? 'black'
+  selectedVariantGroup.value = product.variant_group_id ?? ''
+  createVariantGroup.value = false
   showForm.value = true
   error.value = ''
   success.value = ''
@@ -143,20 +252,39 @@ const saveProduct = async () => {
     return
   }
 
-  if (selectedImage.value) {
-    try {
+  let uploadedImages = []
+
+  try {
+    if (selectedImageFiles.value.length) {
       uploadingImage.value = true
 
-      form.value.image_url = await uploadProductImage(
-          selectedImage.value
+      uploadedImages = await Promise.all(
+          selectedImageFiles.value.map((file) =>
+              uploadProductImage(file)
+          )
       )
-    } catch (err) {
-      console.error('Image upload error:', err)
-      error.value = err.message || 'Не удалось загрузить фотографию.'
-      return
-    } finally {
-      uploadingImage.value = false
     }
+  } catch (err) {
+    console.error('Image upload error:', err)
+    error.value = err.message || 'Не удалось загрузить фотографии.'
+    return
+  } finally {
+    uploadingImage.value = false
+  }
+
+  const allImages = [
+    ...existingImages.value,
+    ...uploadedImages,
+  ]
+
+  let variantGroupId = selectedVariantGroup.value || null
+
+  if (createVariantGroup.value && !variantGroupId) {
+    variantGroupId = crypto.randomUUID()
+  }
+
+  if (editingId.value && !variantGroupId && form.value.variant_group_id) {
+    variantGroupId = form.value.variant_group_id
   }
 
   const payload = {
@@ -171,8 +299,10 @@ const saveProduct = async () => {
     gender: form.value.gender,
     collection: form.value.collection.trim() || null,
     sizes: splitList(form.value.sizes),
-    colors: splitList(form.value.colors),
-    image_url: form.value.image_url.trim() || null,
+    colors: [selectedColor.value],
+    image_url: allImages[0] || null,
+    images: allImages,
+    variant_group_id: variantGroupId,
     is_new: form.value.is_new,
     is_sale: form.value.is_sale,
     is_active: form.value.is_active,
@@ -419,11 +549,18 @@ onMounted(fetchProducts)
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label class="mb-1 block text-sm">Категория</label>
-                <input
+                <label class="mb-2 block text-sm">Категория</label>
+
+                <select
                     v-model="form.category"
-                    class="w-full rounded-lg border p-3"
-                    placeholder="pants, shirts..."/>
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2">
+                  <option
+                      v-for="category in categoryOptions"
+                      :key="category.value"
+                      :value="category.value">
+                    {{ category.label }}
+                  </option>
+                </select>
               </div>
 
               <div>
@@ -439,11 +576,20 @@ onMounted(fetchProducts)
             </div>
 
             <div>
-              <label class="mb-1 block text-sm">Коллекция</label>
-              <input
+              <label class="mb-2 block text-sm">Коллекция</label>
+
+              <select
                   v-model="form.collection"
-                  class="w-full rounded-lg border p-3"
-                  placeholder="Название коллекции"/>
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2">
+                <option value="">Без коллекции</option>
+
+                <option
+                    v-for="collection in collectionOptions"
+                    :key="collection.value"
+                    :value="collection.value">
+                  {{ collection.label }}
+                </option>
+              </select>
             </div>
 
             <div>
@@ -455,33 +601,149 @@ onMounted(fetchProducts)
             </div>
 
             <div>
-              <label class="mb-1 block text-sm">Цвета через запятую</label>
-              <input
-                  v-model="form.colors"
-                  class="w-full rounded-lg border p-3"
-                  placeholder="black, white, brown"/>
+              <label class="mb-3 block text-sm font-medium">
+                Цвет этого варианта
+              </label>
+
+              <div class="flex flex-wrap gap-3">
+                <button
+                    v-for="color in colorOptions"
+                    :key="color.value"
+                    type="button"
+                    @click="selectedColor = color.value"
+                    :aria-label="color.label"
+                    :aria-pressed="selectedColor === color.value"
+                    class="flex flex-col items-center gap-2 rounded-lg border p-2 transition"
+                    :class="selectedColor === color.value
+                ? 'border-gray-900 bg-gray-100'
+                : 'border-transparent hover:border-gray-300'"
+                >
+            <span
+                class="flex h-9 w-9 items-center justify-center rounded-full border border-black/10"
+                :style="{ backgroundColor: color.hex }">
+                <span
+                    v-if="selectedColor === color.value"
+                    :class="['text-lg', color.value === 'black' || color.value === 'blue' || color.value === 'brown' ? 'text-white' : 'text-gray-900']">
+                    ✓
+                </span>
+            </span>
+
+                  <span class="text-xs">
+                {{ color.label }}
+            </span>
+                </button>
+              </div>
+
+              <p class="mt-3 text-sm text-gray-500">
+                Выбран цвет: {{ selectedColorLabel }}
+              </p>
+            </div>
+
+            <div class="rounded-xl border border-gray-200 p-4">
+              <h3 class="font-medium">Цветовые варианты модели</h3>
+
+              <p class="mt-1 text-sm text-gray-500">
+                Выбери существующую модель, если этот товар — другой цвет уже созданного товара.
+              </p>
+
+              <label class="mt-4 block text-sm">
+                Существующая модель
+              </label>
+
+              <select
+                  v-model="selectedVariantGroup"
+                  class="mt-1 w-full rounded-lg border bg-white p-3"
+                  @change="createVariantGroup = false">
+                <option value="">Не выбирать</option>
+
+                <option
+                    v-for="group in variantGroups"
+                    :key="group.id"
+                    :value="group.id">
+                  {{ group.name }}
+                </option>
+              </select>
+
+              <label class="mt-4 flex items-center gap-3 text-sm">
+                <input
+                    v-model="createVariantGroup"
+                    type="checkbox"
+                    @change="selectedVariantGroup = ''"/>
+                Создать новую группу модели
+              </label>
             </div>
 
             <div>
-              <label class="mb-2 block text-sm">
-                Главная фотография товара
+              <label class="mb-2 block text-sm font-medium">
+                Фотографии товара
               </label>
 
-              <input
-                  type="file"
-                  accept="image/*"
-                  @change="handleImageChange"
-                  class="w-full rounded-lg border p-3"/>
+              <label
+                  class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed
+                  border-gray-300 bg-gray-50 px-5 py-8 text-center transition hover:border-gray-500 hover:bg-gray-100">
+                <span class="text-3xl">＋</span>
 
-              <img
-                  v-if="imagePreview || form.image_url"
-                  :src="imagePreview || form.image_url"
-                  alt="Предпросмотр товара"
-                  class="mt-4 h-40 w-32 rounded-lg border object-cover"/>
+                <span class="mt-2 font-medium text-gray-800">
+                  Выбрать фотографии
+                </span>
 
-              <p class="mt-2 text-xs text-gray-500">
-                Форматы изображений, до 5 МБ.
-              </p>
+                <span class="mt-1 text-xs text-gray-500">
+                    Можно выбрать несколько файлов, до 5 МБ каждый
+                </span>
+
+                <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    class="sr-only"
+                    @change="handleImageChange"/>
+              </label>
+
+              <div
+                  v-if="existingImages.length || imagePreviews.length"
+                  class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div
+                    v-for="(url, index) in existingImages"
+                    :key="url"
+                    class="relative">
+                  <img
+                      :src="url"
+                      alt="Фотография товара"
+                      class="h-36 w-full rounded-lg border object-cover"/>
+
+                  <button
+                      type="button"
+                      @click="removeExistingImage(index)"
+                      class="absolute right-2 top-2 rounded-full bg-white px-2 py-1 text-sm shadow"
+                      aria-label="Удалить фотографию">
+                    ×
+                  </button>
+
+                  <span
+                      v-if="index === 0"
+                      class="mt-1 block text-xs text-gray-500">
+                    Главное фото
+                  </span>
+                </div>
+
+                <div
+                    v-for="(url, index) in imagePreviews"
+                    :key="url"
+                    class="relative">
+                  <img
+                      :src="url"
+                      alt="Новая фотография"
+                      class="h-36 w-full rounded-lg border object-cover"/>
+
+                  <button
+                      type="button"
+                      @click="removeNewImage(index)"
+                      class="absolute right-2 top-2 rounded-full bg-white px-2 py-1 text-sm shadow"
+                      aria-label="Убрать выбранную фотографию">
+                    ×
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div class="space-y-3">
