@@ -7,12 +7,17 @@ import {
   deleteProduct,
 } from '../../services/adminProducts.js'
 import { uploadProductImage } from '../../services/productImages.js'
+import AdminDeleteModal from "../../components/admin/AdminDeleteModal.vue";
 
 const products = ref([])
 const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
+
+const showDeleteModal = ref(false)
+const productToDelete = ref(null)
+const deleting = ref(false)
 
 const showForm = ref(false)
 const editingId = ref(null)
@@ -337,25 +342,40 @@ const saveProduct = async () => {
   }
 }
 
-const removeProduct = async (product) => {
-  const confirmed = window.confirm(
-      `Удалить товар «${product.name}»? Это действие нельзя отменить.`
-  )
+function removeProduct(product) {
+  productToDelete.value = product
+  showDeleteModal.value = true
+}
 
-  if (!confirmed) return
+function closeDeleteModal() {
+  if (deleting.value) return
 
+  showDeleteModal.value = false
+  productToDelete.value = null
+}
+
+async function confirmDelete() {
+  if (!productToDelete.value || deleting.value) return
+
+  deleting.value = true
   error.value = ''
   success.value = ''
 
   try {
-    await deleteProduct(product.id)
+    await deleteProduct(productToDelete.value.id)
+
     products.value = products.value.filter(
-        (item) => item.id !== product.id
+        product => product.id !== productToDelete.value.id
     )
-    success.value = 'Товар удалён.'
+
+    success.value = 'Товар успешно удалён.'
+    showDeleteModal.value = false
+    productToDelete.value = null
   } catch (err) {
-    console.error('Product delete error:', err)
-    error.value = err.message || 'Не удалось удалить товар.'
+    console.error('Ошибка удаления товара:', err)
+    error.value = 'Не удалось удалить товар. Попробуйте ещё раз.'
+  } finally {
+    deleting.value = false
   }
 }
 
@@ -460,7 +480,7 @@ onMounted(fetchProducts)
                 <button
                     type="button"
                     @click="removeProduct(product)"
-                    class="text-red-600 underline underline-offset-4">
+                    class="rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 active:bg-red-100">
                   Удалить
                 </button>
               </div>
@@ -787,4 +807,13 @@ onMounted(fetchProducts)
       </div>
     </div>
   </main>
+
+  <AdminDeleteModal
+      :show="showDeleteModal"
+      :item-name="productToDelete?.name ?? ''"
+      :loading="deleting"
+      :error="error"
+      @close="closeDeleteModal"
+      @confirm="confirmDelete"
+  />
 </template>
