@@ -26,6 +26,75 @@ const selectedImageFiles = ref([])
 const imagePreviews = ref([])
 const existingImages = ref([])
 
+const searchQuery = ref('')
+const filterCategory = ref('')
+const filterGender = ref('')
+const filterCollection = ref('')
+const filterStatus = ref('all')
+const sortBy = ref('newest')
+
+const filteredProducts = computed(() => {
+  let result = [...products.value]
+
+  const search = searchQuery.value.trim().toLowerCase()
+
+  if (search) {
+    result = result.filter((product) =>
+        [product.name, product.slug]
+            .some((value) => value?.toLowerCase().includes(search))
+    )
+  }
+
+  if (filterCategory.value) {
+    result = result.filter(
+        (product) => product.category === filterCategory.value
+    )
+  }
+
+  if (filterGender.value) {
+    result = result.filter(
+        (product) => product.gender === filterGender.value
+    )
+  }
+
+  if (filterCollection.value) {
+    result = result.filter(
+        (product) => product.collection === filterCollection.value
+    )
+  }
+
+  if (filterStatus.value === 'active') {
+    result = result.filter((product) => product.is_active)
+  } else if (filterStatus.value === 'hidden') {
+    result = result.filter((product) => !product.is_active)
+  }
+
+  result.sort((a, b) => {
+    switch (sortBy.value) {
+      case 'name-asc':
+        return (a.name ?? '').localeCompare(b.name ?? '', 'ru')
+
+      case 'name-desc':
+        return (b.name ?? '').localeCompare(a.name ?? '', 'ru')
+
+      case 'price-asc':
+        return Number(a.price) - Number(b.price)
+
+      case 'price-desc':
+        return Number(b.price) - Number(a.price)
+
+      case 'oldest':
+        return new Date(a.created_at) - new Date(b.created_at)
+
+      case 'newest':
+      default:
+        return new Date(b.created_at) - new Date(a.created_at)
+    }
+  })
+
+  return result
+})
+
 const resetImageSelection = () => {
   imagePreviews.value.forEach((url) => URL.revokeObjectURL(url))
 
@@ -410,6 +479,135 @@ onMounted(fetchProducts)
         </button>
       </div>
 
+      <!-- Search, sort -->
+      <div class="mt-6 rounded-xl border border-gray-200 bg-white p-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+          <!-- Search -->
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700">
+              Поиск товара
+            </label>
+
+            <input
+                v-model="searchQuery"
+                type="search"
+                placeholder="Название или slug..."
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-gray-900"/>
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700">
+              Категория
+            </label>
+
+            <select
+                v-model="filterCategory"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-900">
+              <option value="">Все категории</option>
+
+              <option
+                  v-for="category in categoryOptions"
+                  :key="category.value"
+                  :value="category.value">
+                {{ category.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Gender -->
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700">
+              Для кого
+            </label>
+
+            <select
+                v-model="filterGender"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-900">
+              <option value="">Все</option>
+              <option value="women">Женщинам</option>
+              <option value="men">Мужчинам</option>
+              <option value="unisex">Унисекс</option>
+            </select>
+          </div>
+
+          <!-- Collection -->
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700">
+              Коллекция
+            </label>
+
+            <select
+                v-model="filterCollection"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-900">
+              <option value="">Все коллекции</option>
+
+              <option
+                  v-for="collection in collectionOptions"
+                  :key="collection.value"
+                  :value="collection.value">
+                {{ collection.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700">
+              Статус товара
+            </label>
+
+            <select
+                v-model="filterStatus"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-900">
+              <option value="all">Все товары</option>
+              <option value="active">Активные</option>
+              <option value="hidden">Скрытые</option>
+            </select>
+          </div>
+
+          <!-- Sort -->
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700">
+              Сортировка
+            </label>
+
+            <select
+                v-model="sortBy"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-900">
+              <option value="newest">Сначала новые</option>
+              <option value="oldest">Сначала старые</option>
+              <option value="name-asc">По названию: А–Я</option>
+              <option value="name-desc">По названию: Я–А</option>
+              <option value="price-asc">Сначала дешёвые</option>
+              <option value="price-desc">Сначала дорогие</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Result filters -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
+          <p class="text-sm text-gray-500">
+            Найдено товаров: {{ filteredProducts.length }} из {{ products.length }}
+          </p>
+
+          <button
+              type="button"
+              @click="
+                searchQuery = '';
+                filterCategory = '';
+                filterGender = '';
+                filterCollection = '';
+                filterStatus = 'all';
+                sortBy = 'newest';"
+              class="text-sm font-medium text-gray-700 underline underline-offset-4 hover:text-black">
+            Сбросить фильтры
+          </button>
+        </div>
+      </div>
+
       <p v-if="error" class="mt-5 text-sm text-red-600">
         {{ error }}
       </p>
@@ -438,7 +636,7 @@ onMounted(fetchProducts)
 
           <tbody>
           <tr
-              v-for="product in products"
+              v-for="product in filteredProducts"
               :key="product.id"
               class="border-b last:border-b-0">
             <td class="px-5 py-4">
@@ -490,9 +688,9 @@ onMounted(fetchProducts)
             </td>
           </tr>
 
-          <tr v-if="products.length === 0">
+          <tr v-if="filteredProducts.length === 0">
             <td colspan="5" class="px-5 py-10 text-center text-gray-500">
-              Товары не найдены.
+              {{ products.length === 0 ? 'Товаров пока нет.' : 'По заданным условиям товары не найдены.' }}
             </td>
           </tr>
           </tbody>
