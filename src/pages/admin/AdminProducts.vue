@@ -362,13 +362,16 @@ async function confirmDelete() {
   success.value = ''
 
   try {
-    await deleteProduct(productToDelete.value.id)
+    const result = await deleteProduct(productToDelete.value.id)
 
     products.value = products.value.filter(
         product => product.id !== productToDelete.value.id
     )
 
-    success.value = 'Товар успешно удалён.'
+    success.value = result.cleanupError
+        ? result.cleanupError
+        : 'Товар и неиспользуемые фотографии успешно удалены.'
+
     showDeleteModal.value = false
     productToDelete.value = null
   } catch (err) {
