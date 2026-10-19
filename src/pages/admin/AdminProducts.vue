@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import {ref, onMounted, computed, onBeforeUnmount, watch} from 'vue'
 import {
   getAdminProducts,
   createProduct,
@@ -94,6 +94,25 @@ const filteredProducts = computed(() => {
 
   return result
 })
+
+const currentPage = ref(1)
+const pageSize = 10
+
+const totalPages = computed(() =>
+    Math.ceil(filteredProducts.value.length / pageSize)
+)
+
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+
+  return filteredProducts.value.slice(start, start + pageSize)
+})
+
+function goToPage(page) {
+  if (page < 1 || page > totalPages.value) return
+
+  currentPage.value = page
+}
 
 const resetImageSelection = () => {
   imagePreviews.value.forEach((url) => URL.revokeObjectURL(url))
@@ -452,6 +471,28 @@ async function confirmDelete() {
 }
 
 onMounted(fetchProducts)
+
+watch(
+    [
+      searchQuery,
+      filterCategory,
+      filterGender,
+      filterCollection,
+      filterStatus,
+      sortBy,
+    ],
+    () => {
+      currentPage.value = 1
+    }
+)
+
+watch(totalPages, (pages) => {
+  if (pages === 0) {
+    currentPage.value = 1
+  } else if (currentPage.value > pages) {
+    currentPage.value = pages
+  }
+})
 </script>
 
 <template>
@@ -636,7 +677,7 @@ onMounted(fetchProducts)
 
           <tbody>
           <tr
-              v-for="product in filteredProducts"
+              v-for="product in paginatedProducts"
               :key="product.id"
               class="border-b last:border-b-0">
             <td class="px-5 py-4">
@@ -695,6 +736,44 @@ onMounted(fetchProducts)
           </tr>
           </tbody>
         </table>
+      </div>
+
+      <div
+          v-if="filteredProducts.length > 0"
+          class="mt-4 flex flex-wrap items-center justify-between gap-4">
+        <p class="text-sm text-gray-500">
+          Страница {{ currentPage }} из {{ totalPages }}
+        </p>
+
+        <div class="flex items-center gap-2">
+          <button
+              type="button"
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="rounded-lg border border-gray-300 px-4 py-2 text-sm transition hover:bg-gray-100
+              disabled:cursor-not-allowed disabled:opacity-40">
+            ← Назад
+          </button>
+
+          <button
+              v-for="page in totalPages"
+              :key="page"
+              type="button"
+              @click="goToPage(page)"
+              :class="['min-w-10 rounded-lg border px-3 py-2 text-sm transition',
+              currentPage === page ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-300 hover:bg-gray-100' ]">
+            {{ page }}
+          </button>
+
+          <button
+              type="button"
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              class="rounded-lg border border-gray-300 px-4 py-2 text-sm transition hover:bg-gray-100
+              disabled:cursor-not-allowed disabled:opacity-40">
+            Далее →
+          </button>
+        </div>
       </div>
 
       <div
