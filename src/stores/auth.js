@@ -29,6 +29,10 @@ export const useAuthStore = defineStore('auth', () => {
             session.value = currentSession
             user.value = currentSession?.user ?? null
 
+            if (user.value) {
+                await fetchProfile()
+            }
+
             // Следим за изменениями авторизации
             supabase.auth.onAuthStateChange((_event, newSession) => {
                 session.value = newSession
@@ -106,6 +110,8 @@ export const useAuthStore = defineStore('auth', () => {
 
             session.value = data.session
             user.value = data.user
+
+            await fetchProfile()
 
             return {
                 success: true,

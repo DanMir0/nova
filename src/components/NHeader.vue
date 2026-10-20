@@ -180,6 +180,15 @@ const handleMobileNavigation = () => {
           <UserRound :size="20" :stroke-width="1.5"/>
         </router-link>
 
+        <router-link
+            v-if="authStore.user && authStore.isAdmin()"
+            to="/admin"
+            aria-label="Админ-панель"
+            title="Админ-панель"
+            class="hidden transition-opacity hover:opacity-50 sm:block">
+          <span class="text-sm">Админ-панель</span>
+        </router-link>
+
         <RouterLink
             to="/favorites"
             aria-label="Избранное"
@@ -330,6 +339,15 @@ const handleMobileNavigation = () => {
                           <UserRound :size="19" :stroke-width="1.5"/>
                           Личный кабинет
                       </RouterLink>
+
+                    <RouterLink
+                        v-if="authStore.user && authStore.isAdmin()"
+                        to="/admin"
+                        class="flex items-center gap-3 text-sm"
+                        @click="handleMobileNavigation">
+                      <UserRound :size="19" :stroke-width="1.5"/>
+                      Админ-панель
+                    </RouterLink>
 
                       <!-- Favorites -->
                       <RouterLink
