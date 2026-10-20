@@ -393,36 +393,35 @@ const handleCreateOrder = async () => {
             <div
                 class="mt-6 flex justify-between text-sm">
 
-                            <span class="text-neutral-500">
-                                Товары
-                            </span>
+              <span class="text-neutral-500">
+                Товары
+              </span>
               <span>
-                            {{ formatPrice(cartStore.totalPrice) }}
-                          </span>
+                {{ formatPrice(cartStore.totalPrice) }}
+              </span>
 
             </div>
 
             <div
                 class="mt-3 flex justify-between text-sm">
 
-                            <span class="text-neutral-500">
-                                Доставка
-                            </span>
+              <span class="text-neutral-500">
+                Доставка
+              </span>
               <span>
-                                {{ deliveryPrice === 0 ? 'Бесплатно' : formatPrice(deliveryPrice) }}
-                            </span>
+                {{ deliveryPrice === 0 ? 'Бесплатно' : formatPrice(deliveryPrice) }}
+              </span>
 
             </div>
 
-            <div
-                class="mt-6 flex justify-between border-t border-neutral-200 pt-6">
+            <div class="mt-6 flex justify-between border-t border-neutral-200 pt-6">
 
-                            <span class="font-medium">
-                                Итого
-                            </span>
               <span class="font-medium">
-                                {{ formatPrice(totalPrice) }}
-                            </span>
+                Итого
+              </span>
+              <span class="font-medium">
+                {{ formatPrice(totalPrice) }}
+              </span>
 
             </div>
 
@@ -458,15 +457,13 @@ const handleCreateOrder = async () => {
                 Бесплатная
               </p>
 
-              <p
-                  class="mt-1 text-[8px] text-neutral-400">
+              <p class="mt-1 text-[8px] text-neutral-400">
                 доставка
               </p>
 
             </div>
 
-            <div
-                class="border-x border-neutral-200 px-2 py-4 text-center">
+            <div class="border-x border-neutral-200 px-2 py-4 text-center">
 
               <p class="text-[9px] font-medium">
                 Быстрая
@@ -492,7 +489,6 @@ const handleCreateOrder = async () => {
               </p>
 
             </div>
-
 
           </div>
 
