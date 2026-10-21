@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '../lib/supabase'
 import { getProfile } from '../services/authService.js'
+import { useCartStore } from './cart'
+import { useAddressesStore } from './addresses'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(null)
@@ -12,6 +14,11 @@ export const useAuthStore = defineStore('auth', () => {
     const loading = ref(false)
     const initialized = ref(false)
     const error = ref(null)
+
+    const syncUserData = (userId, options = {}) => {
+        useCartStore().setOwner(userId, options)
+        useAddressesStore().setOwner(userId, options)
+    }
 
     const initialize = async () => {
         if (initialized.value) {
@@ -37,6 +44,8 @@ export const useAuthStore = defineStore('auth', () => {
             supabase.auth.onAuthStateChange((_event, newSession) => {
                 session.value = newSession
                 user.value = newSession?.user ?? null
+
+                syncUserData(user.value?.id ?? null)
             })
 
             initialized.value = true
@@ -72,6 +81,8 @@ export const useAuthStore = defineStore('auth', () => {
 
             session.value = data.session
             user.value = data.user
+
+            syncUserData(data.user?.id ?? null)
 
             return {
                 success: true,
@@ -111,6 +122,8 @@ export const useAuthStore = defineStore('auth', () => {
             session.value = data.session
             user.value = data.user
 
+            syncUserData(data.user.id)
+
             await fetchProfile()
 
             return {
@@ -143,6 +156,8 @@ export const useAuthStore = defineStore('auth', () => {
             if (signOutError) {
                 throw signOutError
             }
+
+            syncUserData(null, { clearGuest: true })
 
             user.value = null
             session.value = null
