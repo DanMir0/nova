@@ -16,6 +16,7 @@ import OrderSuccess from "../pages/OrderSuccess.vue";
 import Collection from "../pages/Collection.vue";
 import AdminDashboard from '../pages/admin/AdminDashboard.vue'
 import AdminProducts from '../pages/admin/AdminProducts.vue'
+import AdminOrders from '../pages/admin/AdminOrders.vue'
 
 const routes = [
     {
@@ -104,6 +105,15 @@ const routes = [
         path: '/admin/products',
         name: 'admin-products',
         component: AdminProducts,
+        meta: {
+            requiresAuth: true,
+            requiresAdmin: true,
+        },
+    },
+    {
+        path: '/admin/orders',
+        name: 'admin-orders',
+        component: AdminOrders,
         meta: {
             requiresAuth: true,
             requiresAdmin: true,

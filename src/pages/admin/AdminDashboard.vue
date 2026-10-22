@@ -34,8 +34,24 @@ const authStore = useAuthStore()
           </p>
 
           <span class="mt-5 inline-block text-sm font-medium text-gray-900">
-                        Открыть →
-                    </span>
+            Открыть →
+          </span>
+        </RouterLink>
+
+        <RouterLink
+            to="/admin/orders"
+            class="rounded-xl border border-gray-200 bg-white p-6 transition hover:border-gray-400">
+          <h2 class="text-lg font-medium text-gray-900">
+            Заказы
+          </h2>
+
+          <p class="mt-2 text-sm text-gray-500">
+            Просмотр и изменение статуса заказа
+          </p>
+
+          <span class="mt-5 inline-block text-sm font-medium text-gray-900">
+            Открыть →
+          </span>
         </RouterLink>
       </section>
 

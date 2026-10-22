@@ -8,9 +8,11 @@ import {formatPrice} from '../utils/formatPrice'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { createOrder } from '../services/orders'
+import {useAuthStore} from "../stores/auth.js";
 
 const addressesStore = useAddressesStore()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
 
 const router = useRouter()
 
@@ -50,14 +52,17 @@ const handleCreateOrder = async () => {
   isSubmitting.value = true
 
   try {
-    const { data: { user }, error: authError } =
-        await supabase.auth.getUser()
+    const {
+      data: { session },
+      error: authError,
+    } = await supabase.auth.getSession()
 
-    if (authError) throw authError
+    if (authError) {
+      throw authError
+    }
 
-    if (!user) {
-      orderError.value =
-          'Войдите в аккаунт, чтобы оформить заказ'
+    if (!session?.user) {
+      orderError.value = 'Войдите в аккаунт, чтобы оформить заказ'
       return
     }
 
